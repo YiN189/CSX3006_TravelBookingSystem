@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block title %}Payment Successful{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-success">
+                <div class="card-header bg-success text-white text-center py-4">
+                    <i class="fas fa-check-circle fa-4x mb-3"></i>
+                    <h2>Payment Successful!</h2>
+                </div>
+                <div class="card-body p-4">
+                    <div class="alert alert-success">
+                        <strong>Congratulations!</strong> Your payment has been processed successfully.
+                        Your booking is now confirmed.
+                    </div>
+
+                    <h5 class="mb-3">Payment Details</h5>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p><strong>Payment ID:</strong><br>{{ payment.payment_id }}</p>
+                            <p><strong>Transaction ID:</strong><br>{{ payment.transaction_id }}</p>
+                            <p><strong>Payment Method:</strong><br>
+                                <span class="badge bg-primary">{{ payment.get_payment_method_display }}</span>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Amount Paid:</strong><br>
+                                <span class="h4 text-success">${{ payment.amount }}</span>
+                            </p>
+                            <p><strong>Payment Date:</strong><br>{{ payment.payment_date|date:"M d, Y H:i" }}</p>
+                            <p><strong>Status:</strong><br>
+                                <span class="badge bg-success">{{ payment.get_status_display }}</span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <h5 class="mb-3">Booking Information</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Booking ID:</strong><br>{{ booking.booking_id }}</p>
+                            <p><strong>Booking Type:</strong><br>
+                                <span class="badge bg-info">{{ booking.get_booking_type_display }}</span>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            {% if booking.booking_type == 'hotel' %}
+                                <p><strong>Hotel:</strong><br>{{ booking.hotel_detail.room_type.hotel.name }}</p>
+                                <p><strong>Check-in:</strong> {{ booking.hotel_detail.check_in_date }}</p>
+                            {% elif booking.booking_type == 'flight' %}
+                                <p><strong>Flight:</strong><br>{{ booking.flight_detail.flight.flight_number }}</p>
+                                <p><strong>Route:</strong> {{ booking.flight_detail.flight.origin }} → {{ booking.flight_detail.flight.destination }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'payments:payment_receipt' payment.payment_id %}"
+                           class="btn btn-primary" target="_blank">
+                            <i class="fas fa-receipt"></i> View & Download Receipt
+                        </a>
+                        <a href="{% url 'bookings:my_bookings' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-list"></i> View My Bookings
+                        </a>
+                        <a href="{% url 'home' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-home"></i> Back to Home
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}>

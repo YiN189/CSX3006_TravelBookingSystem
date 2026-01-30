@@ -1,0 +1,207 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Payment - {{ booking.booking_id }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <h2 class="mb-4"><i class="fas fa-credit-card"></i> Complete Your Payment</h2>
+            
+            <div class="row">
+                <!-- Booking Summary -->
+                <div class="col-md-4 mb-4">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0"><i class="fas fa-file-invoice"></i> Booking Summary</h5>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Booking ID:</strong><br>{{ booking.booking_id }}</p>
+                            <p><strong>Type:</strong><br>
+                                <span class="badge bg-info">{{ booking.get_booking_type_display }}</span>
+                            </p>
+                            
+                            {% if booking.booking_type == 'hotel' %}
+                                <p><strong>Hotel:</strong><br>{{ booking.hotel_detail.room_type.hotel.name }}</p>
+                                <p><strong>Room Type:</strong><br>{{ booking.hotel_detail.room_type.name }}</p>
+                                <p><strong>Rooms:</strong> {{ booking.hotel_detail.number_of_rooms }}</p>
+                                <p><strong>Check-in:</strong><br>{{ booking.hotel_detail.check_in_date }}</p>
+                                <p><strong>Check-out:</strong><br>{{ booking.hotel_detail.check_out_date }}</p>
+                            {% elif booking.booking_type == 'flight' %}
+                                <p><strong>Flight:</strong><br>{{ booking.flight_detail.flight.flight_number }}</p>
+                                <p><strong>From:</strong> {{ booking.flight_detail.flight.origin }}</p>
+                                <p><strong>To:</strong> {{ booking.flight_detail.flight.destination }}</p>
+                                <p><strong>Date:</strong><br>{{ booking.flight_detail.flight.departure_time|date:"M d, Y" }}</p>
+                                <p><strong>Passengers:</strong> {{ booking.flight_detail.passengers.count }}</p>
+                            {% endif %}
+                            
+                            <hr>
+                            <h4 class="text-primary">Total Amount:</h4>
+                            <h3 class="text-success">${{ booking.total_amount }}</h3>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Payment Form -->
+                <div class="col-md-8">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0"><i class="fas fa-lock"></i> Secure Payment</h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="post" id="paymentForm">
+                                {% csrf_token %}
+                                
+                                <!-- Payment Method Selection -->
+                                <div class="mb-4">
+                                    <label class="form-label"><strong>Payment Method</strong></label>
+                                    {{ form.payment_method }}
+                                </div>
+                                
+                                <!-- Credit/Debit Card Fields -->
+                                <div id="cardFields" class="payment-method-fields">
+                                    <h6 class="mb-3"><i class="fas fa-credit-card"></i> Card Information</h6>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label">Card Holder Name</label>
+                                        {{ form.card_holder_name }}
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label">Card Number</label>
+                                        {{ form.card_number }}
+                                        <small class="form-text text-muted">Enter 16-digit card number</small>
+                                    </div>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-4 mb-3">
+                                            <label class="form-label">Card Type</label>
+                                            {{ form.card_type }}
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <label class="form-label">Expiry Month</label>
+                                            {{ form.expiry_month }}
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <label class="form-label">Expiry Year</label>
+                                            {{ form.expiry_year }}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label">CVV</label>
+                                        {{ form.cvv }}
+                                        <small class="form-text text-muted">3 or 4 digit security code</small>
+                                    </div>
+                                </div>
+                                
+                                <!-- Bank Transfer Fields -->
+                                <div id="bankFields" class="payment-method-fields" style="display: none;">
+                                    <h6 class="mb-3"><i class="fas fa-university"></i> Bank Transfer Information</h6>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label">Bank Name</label>
+                                        {{ form.bank_name }}
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label">Account Number</label>
+                                        {{ form.account_number }}
+                                    </div>
+                                </div>
+                                
+                                <!-- PayPal Fields -->
+                                <div id="paypalFields" class="payment-method-fields" style="display: none;">
+                                    <h6 class="mb-3"><i class="fab fa-paypal"></i> PayPal Information</h6>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label">PayPal Email</label>
+                                        {{ form.paypal_email }}
+                                    </div>
+                                </div>
+                                
+                                <!-- Cash Payment Info -->
+                                <div id="cashFields" class="payment-method-fields" style="display: none;">
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-info-circle"></i>
+                                        <strong>Cash Payment:</strong> Please pay at the counter upon arrival.
+                                    </div>
+                                </div>
+                                
+                                <!-- Notes -->
+                                <div class="mb-3">
+                                    <label class="form-label">Additional Notes (Optional)</label>
+                                    {{ form.notes }}
+                                </div>
+                                
+                                {% if form.errors %}
+                                    <div class="alert alert-danger">
+                                        <strong>Please correct the following errors:</strong>
+                                        <ul class="mb-0">
+                                            {% for field, errors in form.errors.items %}
+                                                {% for error in errors %}
+                                                    <li>{{ error }}</li>
+                                                {% endfor %}
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                {% endif %}
+                                
+                                <hr>
+                                
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <a href="{% url 'bookings:my_bookings' %}" class="btn btn-secondary">
+                                        <i class="fas fa-arrow-left"></i> Cancel
+                                    </a>
+                                    <button type="submit" class="btn btn-success btn-lg">
+                                        <i class="fas fa-lock"></i> Pay ${{ booking.total_amount }}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3 text-muted text-center">
+                        <small><i class="fas fa-shield-alt"></i> Your payment is secure and encrypted</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const paymentMethodSelect = document.getElementById('id_payment_method');
+    const cardFields = document.getElementById('cardFields');
+    const bankFields = document.getElementById('bankFields');
+    const paypalFields = document.getElementById('paypalFields');
+    const cashFields = document.getElementById('cashFields');
+    
+    function togglePaymentFields() {
+        const method = paymentMethodSelect.value;
+        
+        // Hide all fields
+        cardFields.style.display = 'none';
+        bankFields.style.display = 'none';
+        paypalFields.style.display = 'none';
+        cashFields.style.display = 'none';
+        
+        // Show relevant fields
+        if (method === 'credit_card' || method === 'debit_card') {
+            cardFields.style.display = 'block';
+        } else if (method === 'bank_transfer') {
+            bankFields.style.display = 'block';
+        } else if (method === 'paypal') {
+            paypalFields.style.display = 'block';
+        } else if (method === 'cash') {
+            cashFields.style.display = 'block';
+        }
+    }
+    
+    paymentMethodSelect.addEventListener('change', togglePaymentFields);
+    togglePaymentFields(); // Initial call
+});
+</script>
+{% endblock %}

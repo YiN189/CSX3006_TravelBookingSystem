@@ -1,0 +1,77 @@
+<!-- templates/bookings/flights/detail.html -->
+{% extends 'base.html' %}
+
+{% block title %}Flight {{ flight.flight_number }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'bookings:flight_search' %}">Flights</a></li>
+            <li class="breadcrumb-item active">{{ flight.flight_number }}</li>
+        </ol>
+    </nav>
+
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h3 class="mb-0">
+                <i class="fas fa-plane"></i> Flight {{ flight.flight_number }}
+            </h3>
+        </div>
+        <div class="card-body">
+            <div class="row mb-4">
+                <div class="col-md-5 text-center">
+                    <h2>{{ flight.origin }}</h2>
+                    <h4>{{ flight.departure_time|date:"H:i" }}</h4>
+                    <p class="text-muted">{{ flight.departure_time|date:"l, F d, Y" }}</p>
+                </div>
+
+                <div class="col-md-2 text-center d-flex flex-column justify-content-center">
+                    <i class="fas fa-plane fa-3x text-primary mb-2"></i>
+                    <p class="mb-0"><strong>{{ flight.duration }}</strong></p>
+                </div>
+
+                <div class="col-md-5 text-center">
+                    <h2>{{ flight.destination }}</h2>
+                    <h4>{{ flight.arrival_time|date:"H:i" }}</h4>
+                    <p class="text-muted">{{ flight.arrival_time|date:"l, F d, Y" }}</p>
+                </div>
+            </div>
+
+            <hr>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>Flight Information</h5>
+                    <ul class="list-unstyled">
+                        <li><strong>Flight Number:</strong> {{ flight.flight_number }}</li>
+                        <li><strong>Class:</strong> {{ flight.class_type }}</li>
+                        {% if flight.aircraft_type %}
+                            <li><strong>Aircraft:</strong> {{ flight.aircraft_type }}</li>
+                        {% endif %}
+                        <li><strong>Available Seats:</strong> {{ flight.seats_available }} / {{ flight.total_seats }}</li>
+                    </ul>
+                </div>
+
+                <div class="col-md-6">
+                    <h5>Pricing</h5>
+                    <h2 class="text-primary">${{ flight.price }}<small class="text-muted"> per person</small></h2>
+
+                    <div class="mt-4">
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'bookings:flight_booking_create' flight.id %}" class="btn btn-success btn-lg w-100">
+                                <i class="fas fa-calendar-check"></i> Book This Flight
+                            </a>
+                        {% else %}
+                            <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="btn btn-primary btn-lg w-100">
+                                <i class="fas fa-sign-in-alt"></i> Login to Book
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,167 @@
+<!-- templates/bookings/flights/booking_form.html -->
+{% extends 'base.html' %}
+
+{% block title %}Book Flight {{ flight.flight_number }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'bookings:flight_search' %}">Flights</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'bookings:flight_detail' flight.id %}">{{ flight.flight_number }}</a></li>
+            <li class="breadcrumb-item active">Book</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- Booking Form -->
+        <div class="col-md-7">
+            <div class="card mb-3">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0"><i class="fas fa-users"></i> Passenger Information</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="bookingForm">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label class="form-label">Number of Passengers *</label>
+                            {{ form.number_of_passengers }}
+                            <small class="text-muted">Available: {{ flight.seats_available }}</small>
+                            {% if form.number_of_passengers.errors %}
+                                <div class="text-danger">{{ form.number_of_passengers.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <hr>
+
+                        <h5 class="mb-3">Passenger Details</h5>
+
+                        {{ passenger_formset.management_form }}
+
+                        <div id="passenger-forms">
+                            {% for passenger_form in passenger_formset %}
+                                <div class="card mb-3 passenger-form">
+                                    <div class="card-header bg-light">
+                                        <strong>Passenger {{ forloop.counter }}</strong>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-2 mb-3">
+                                                <label class="form-label">Title *</label>
+                                                {{ passenger_form.title }}
+                                            </div>
+                                            <div class="col-md-5 mb-3">
+                                                <label class="form-label">First Name *</label>
+                                                {{ passenger_form.first_name }}
+                                            </div>
+                                            <div class="col-md-5 mb-3">
+                                                <label class="form-label">Last Name *</label>
+                                                {{ passenger_form.last_name }}
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Date of Birth *</label>
+                                                {{ passenger_form.date_of_birth }}
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Passport Number</label>
+                                                {{ passenger_form.passport_number }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <hr>
+
+                        <div class="mb-3">
+                            <label class="form-label">Special Requests (Optional)</label>
+                            <textarea name="notes" class="form-control" rows="3" placeholder="Any special requests or notes"></textarea>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-check-circle"></i> Confirm Booking
+                            </button>
+                            <a href="{% url 'bookings:flight_detail' flight.id %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Booking Summary -->
+        <div class="col-md-5">
+            <div class="card sticky-top" style="top: 20px;">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Booking Summary</h5>
+                </div>
+                <div class="card-body">
+                    <h5>{{ flight.flight_number }}</h5>
+                    <p class="mb-0">
+                        <i class="fas fa-plane-departure"></i> {{ flight.origin }}<br>
+                        <i class="fas fa-plane-arrival"></i> {{ flight.destination }}
+                    </p>
+
+                    <hr>
+
+                    <p>
+                        <strong>Departure:</strong><br>
+                        {{ flight.departure_time|date:"l, F d, Y" }}<br>
+                        {{ flight.departure_time|date:"H:i" }}
+                    </p>
+
+                    <p>
+                        <strong>Arrival:</strong><br>
+                        {{ flight.arrival_time|date:"l, F d, Y" }}<br>
+                        {{ flight.arrival_time|date:"H:i" }}
+                    </p>
+
+                    <hr>
+
+                    <p>
+                        <strong>Class:</strong> {{ flight.class_type }}<br>
+                        {% if flight.aircraft_type %}
+                            <strong>Aircraft:</strong> {{ flight.aircraft_type }}
+                        {% endif %}
+                    </p>
+
+                    <hr>
+
+                    <div class="d-flex justify-content-between">
+                        <span>Price per person:</span>
+                        <strong>${{ flight.price }}</strong>
+                    </div>
+
+                    <div id="totalPrice" class="d-flex justify-content-between mt-2">
+                        <span><strong>Total:</strong></span>
+                        <strong class="text-primary">$<span id="totalAmount">{{ flight.price }}</span></strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Calculate total price dynamically
+document.addEventListener('DOMContentLoaded', function() {
+    const passengersInput = document.querySelector('input[name="number_of_passengers"]');
+    const pricePerPerson = {{ flight.price }};
+
+    if (passengersInput) {
+        passengersInput.addEventListener('input', function() {
+            const passengers = parseInt(this.value) || 1;
+            const total = pricePerPerson * passengers;
+            document.getElementById('totalAmount').textContent = total.toFixed(2);
+        });
+    }
+});
+</script>
+{% endblock %}

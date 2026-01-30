@@ -1,0 +1,156 @@
+<!-- templates/bookings/hotels/booking_form.html -->
+{% extends 'base.html' %}
+
+{% block title %}Book {{ room_type.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'bookings:hotel_search' %}">Hotels</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'bookings:hotel_detail' hotel.id %}">{{ hotel.name }}</a></li>
+            <li class="breadcrumb-item active">Book Room</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- Booking Form -->
+        <div class="col-md-7">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0"><i class="fas fa-calendar-check"></i> Complete Your Booking</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Check-in Date *</label>
+                                {{ form.check_in_date }}
+                                {% if form.check_in_date.errors %}
+                                    <div class="text-danger">{{ form.check_in_date.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Check-out Date *</label>
+                                {{ form.check_out_date }}
+                                {% if form.check_out_date.errors %}
+                                    <div class="text-danger">{{ form.check_out_date.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Number of Rooms *</label>
+                                {{ form.number_of_rooms }}
+                                <small class="text-muted">Available: {{ room_type.rooms_available }}</small>
+                                {% if form.number_of_rooms.errors %}
+                                    <div class="text-danger">{{ form.number_of_rooms.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Number of Guests *</label>
+                                {{ form.number_of_guests }}
+                                <small class="text-muted">Max per room: {{ room_type.max_occupancy }}</small>
+                                {% if form.number_of_guests.errors %}
+                                    <div class="text-danger">{{ form.number_of_guests.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Special Requests (Optional)</label>
+                            <textarea name="notes" class="form-control" rows="3" placeholder="Any special requests or notes"></textarea>
+                        </div>
+
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {{ form.non_field_errors }}
+                            </div>
+                        {% endif %}
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-check-circle"></i> Confirm Booking
+                            </button>
+                            <a href="{% url 'bookings:hotel_detail' hotel.id %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Booking Summary -->
+        <div class="col-md-5">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Booking Summary</h5>
+                </div>
+                <div class="card-body">
+                    <h5>{{ hotel.name }}</h5>
+                    <p class="text-muted">{{ hotel.city }}</p>
+
+                    <hr>
+
+                    <h6>{{ room_type.name }}</h6>
+                    <p>
+                        <i class="fas fa-users"></i> Max {{ room_type.max_occupancy }} guests per room<br>
+                        {% if room_type.bed_type %}
+                            <i class="fas fa-bed"></i> {{ room_type.bed_type }}<br>
+                        {% endif %}
+                        {% if room_type.room_size %}
+                            <i class="fas fa-ruler-combined"></i> {{ room_type.room_size }} m²
+                        {% endif %}
+                    </p>
+
+                    <hr>
+
+                    <div class="d-flex justify-content-between">
+                        <span>Price per night:</span>
+                        <strong>${{ room_type.price_per_night }}</strong>
+                    </div>
+
+                    <hr>
+
+                    <p class="text-muted small">
+                        <i class="fas fa-info-circle"></i> Total amount will be calculated based on your dates and number of rooms
+                    </p>
+
+                    {% if room_type.amenities %}
+                        <hr>
+                        <h6>Room Amenities</h6>
+                        <p class="small">{{ room_type.amenities }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Auto-calculate nights when dates change
+document.addEventListener('DOMContentLoaded', function() {
+    const checkIn = document.querySelector('input[name="check_in_date"]');
+    const checkOut = document.querySelector('input[name="check_out_date"]');
+
+    if (checkIn && checkOut) {
+        checkOut.addEventListener('change', function() {
+            if (checkIn.value && checkOut.value) {
+                const date1 = new Date(checkIn.value);
+                const date2 = new Date(checkOut.value);
+                const diffTime = Math.abs(date2 - date1);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                console.log('Nights:', diffDays);
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,125 @@
+<!-- templates/bookings/my_bookings.html -->
+{% extends 'base.html' %}
+
+{% block title %}My Bookings{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4"><i class="fas fa-list"></i> My Bookings</h2>
+
+    {% if bookings %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Booking ID</th>
+                        <th>Type</th>
+                        <th>Details</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Payment</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for booking in bookings %}
+                        <tr>
+                            <td><small>{{ booking.booking_id }}</small></td>
+                            <td>
+                                <span class="badge bg-info">
+                                    {{ booking.get_booking_type_display }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if booking.booking_type == 'hotel' %}
+                                    <strong>{{ booking.hotel_detail.room_type.hotel.name }}</strong><br>
+                                    <small>{{ booking.hotel_detail.check_in_date }} to {{ booking.hotel_detail.check_out_date }}</small>
+                                {% elif booking.booking_type == 'flight' %}
+                                    <strong>{{ booking.flight_detail.flight.flight_number }}</strong><br>
+                                    <small>{{ booking.flight_detail.flight.origin }} → {{ booking.flight_detail.flight.destination }}</small>
+                                {% endif %}
+                            </td>
+                            <td><strong>${{ booking.total_amount }}</strong></td>
+                            <td>
+                                {% if booking.status == 'pending' %}
+                                    <span class="badge bg-warning">Pending</span>
+                                {% elif booking.status == 'confirmed' %}
+                                    <span class="badge bg-success">Confirmed</span>
+                                {% elif booking.status == 'cancelled' %}
+                                    <span class="badge bg-danger">Cancelled</span>
+                                {% elif booking.status == 'completed' %}
+                                    <span class="badge bg-info">Completed</span>
+                                {% endif %}
+                            </td>
+                            <!-- Payment Status Column -->
+                            <td>
+                                {% if booking.payment %}
+                                    {% if booking.payment.status == 'completed' %}
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check"></i> Paid
+                                        </span>
+                                    {% elif booking.payment.status == 'pending' %}
+                                        <span class="badge bg-warning">
+                                            <i class="fas fa-clock"></i> Pending
+                                        </span>
+                                    {% elif booking.payment.status == 'failed' %}
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-times"></i> Failed
+                                        </span>
+                                    {% elif booking.payment.status == 'refunded' %}
+                                        <span class="badge bg-info">
+                                            <i class="fas fa-undo"></i> Refunded
+                                        </span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="badge bg-secondary">No Payment</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ booking.created_at|date:"M d, Y" }}</td>
+                            <td>
+                                <a href="{% url 'bookings:booking_detail' booking.booking_id %}" 
+                                   class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye"></i> View
+                                </a>
+                                
+                                <!-- Payment Action Buttons -->
+                                {% if booking.status == 'pending' %}
+                                    {% if not booking.payment or booking.payment.status == 'failed' %}
+                                        <a href="{% url 'payments:payment_page' booking.booking_id %}" 
+                                           class="btn btn-sm btn-success">
+                                            <i class="fas fa-credit-card"></i> Pay
+                                        </a>
+                                    {% endif %}
+                                {% endif %}
+                                
+                                {% if booking.payment and booking.payment.status == 'completed' %}
+                                    <a href="{% url 'payments:payment_receipt' booking.payment.payment_id %}" 
+                                       class="btn btn-sm btn-outline-info" target="_blank">
+                                        <i class="fas fa-receipt"></i>
+                                    </a>
+                                {% endif %}
+                                
+                                {% if booking.status == 'pending' or booking.status == 'confirmed' %}
+                                    <a href="{% url 'bookings:cancel_booking' booking.booking_id %}" 
+                                       class="btn btn-sm btn-outline-danger"
+                                       onclick="return confirm('Cancel this booking?')">
+                                        <i class="fas fa-times"></i>
+                                    </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> You haven't made any bookings yet.
+            <a href="{% url 'bookings:hotel_search' %}" class="alert-link">Browse hotels</a> or
+            <a href="{% url 'bookings:flight_search' %}" class="alert-link">search flights</a>.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+

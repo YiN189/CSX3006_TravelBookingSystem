@@ -1,0 +1,189 @@
+{% extends 'base.html' %}
+
+{% block title %}Payment Statistics{% endblock %}
+
+{% block content %}
+<div class="container-fluid my-5">
+    <h2 class="mb-4"><i class="fas fa-chart-line"></i> Payment Statistics</h2>
+    
+    <!-- Time Filter -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label">Time Period</label>
+                    <select name="days" class="form-select">
+                        <option value="7" {% if days == 7 %}selected{% endif %}>Last 7 Days</option>
+                        <option value="30" {% if days == 30 %}selected{% endif %}>Last 30 Days</option>
+                        <option value="90" {% if days == 90 %}selected{% endif %}>Last 90 Days</option>
+                        <option value="365" {% if days == 365 %}selected{% endif %}>Last Year</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-filter"></i> Apply
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Overview Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <h6 class="card-title">Total Revenue</h6>
+                    <h2 class="mb-0">${{ total_revenue|floatformat:2 }}</h2>
+                    <small>Completed Payments</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <h6 class="card-title">Total Payments</h6>
+                    <h2 class="mb-0">{{ payment_count }}</h2>
+                    <small>All Statuses</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-warning">
+                <div class="card-body">
+                    <h6 class="card-title">Success Rate</h6>
+                    <h2 class="mb-0">{{ success_rate }}%</h2>
+                    <small>{{ completed_count }} Successful</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-info">
+                <div class="card-body">
+                    <h6 class="card-title">Total Refunded</h6>
+                    <h2 class="mb-0">${{ total_refunded|floatformat:2 }}</h2>
+                    <small>{{ refunded_count }} Refunds</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Payments by Method</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Method</th>
+                                    <th class="text-end">Count</th>
+                                    <th class="text-end">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in by_method %}
+                                    <tr>
+                                        <td>{{ item.payment_method|title }}</td>
+                                        <td class="text-end">{{ item.count }}</td>
+                                        <td class="text-end">${{ item.total|floatformat:2 }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Payments by Status</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Status</th>
+                                    <th class="text-end">Count</th>
+                                    <th class="text-end">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in by_status %}
+                                    <tr>
+                                        <td>
+                                            {% if item.status == 'completed' %}
+                                                <span class="badge bg-success">{{ item.status|title }}</span>
+                                            {% elif item.status == 'pending' %}
+                                                <span class="badge bg-warning">{{ item.status|title }}</span>
+                                            {% elif item.status == 'failed' %}
+                                                <span class="badge bg-danger">{{ item.status|title }}</span>
+                                            {% else %}
+                                                <span class="badge bg-info">{{ item.status|title }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-end">{{ item.count }}</td>
+                                        <td class="text-end">${{ item.total|floatformat:2 }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Payments -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Recent Payments</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Payment ID</th>
+                            <th>User</th>
+                            <th>Amount</th>
+                            <th>Method</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for payment in recent_payments %}
+                            <tr>
+                                <td><small>{{ payment.payment_id }}</small></td>
+                                <td>{{ payment.user.get_full_name }}</td>
+                                <td>${{ payment.amount }}</td>
+                                <td>{{ payment.get_payment_method_display }}</td>
+                                <td>
+                                    {% if payment.status == 'completed' %}
+                                        <span class="badge bg-success">Completed</span>
+                                    {% elif payment.status == 'pending' %}
+                                        <span class="badge bg-warning">Pending</span>
+                                    {% elif payment.status == 'failed' %}
+                                        <span class="badge bg-danger">Failed</span>
+                                    {% else %}
+                                        <span class="badge bg-info">Refunded</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ payment.created_at|date:"M d, Y H:i" }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

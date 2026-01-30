@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}Payment Failed{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-danger">
+                <div class="card-header bg-danger text-white text-center py-4">
+                    <i class="fas fa-times-circle fa-4x mb-3"></i>
+                    <h2>Payment Failed</h2>
+                </div>
+                <div class="card-body p-4">
+                    <div class="alert alert-danger">
+                        <strong>Payment Error:</strong> We were unable to process your payment. 
+                        Please try again or use a different payment method.
+                    </div>
+                    
+                    {% if payment.failure_reason %}
+                        <div class="alert alert-warning">
+                            <strong>Reason:</strong> {{ payment.failure_reason }}
+                        </div>
+                    {% endif %}
+                    
+                    <h5 class="mb-3">Payment Details</h5>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p><strong>Payment ID:</strong><br>{{ payment.payment_id }}</p>
+                            <p><strong>Payment Method:</strong><br>
+                                <span class="badge bg-primary">{{ payment.get_payment_method_display }}</span>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Amount:</strong><br>
+                                <span class="h4">${{ payment.amount }}</span>
+                            </p>
+                            <p><strong>Status:</strong><br>
+                                <span class="badge bg-danger">{{ payment.get_status_display }}</span>
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <h5 class="mb-3">What to do next?</h5>
+                    <ul>
+                        <li>Check your payment details and try again</li>
+                        <li>Try a different payment method</li>
+                        <li>Contact your bank if the problem persists</li>
+                        <li>Contact our support team for assistance</li>
+                    </ul>
+                    
+                    <hr>
+                    
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'payments:payment_page' booking.booking_id %}" 
+                           class="btn btn-primary">
+                            <i class="fas fa-redo"></i> Try Again
+                        </a>
+                        <a href="{% url 'bookings:my_bookings' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-list"></i> View My Bookings
+                        </a>
+                        <a href="{% url 'home' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-home"></i> Back to Home
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

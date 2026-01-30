@@ -1,0 +1,75 @@
+<!-- templates/partners/rooms/list.html -->
+{% extends 'base.html' %}
+
+{% block title %}Room Types - {{ hotel.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2><i class="fas fa-bed"></i> Room Types</h2>
+            <p class="text-muted mb-0">{{ hotel.name }} - {{ hotel.city }}</p>
+        </div>
+        <div>
+            <a href="{% url 'partners:hotel_list' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Hotels
+            </a>
+            <a href="{% url 'partners:room_type_create' hotel.id %}" class="btn btn-success">
+                <i class="fas fa-plus"></i> Add Room Type
+            </a>
+        </div>
+    </div>
+
+    {% if room_types %}
+        <div class="row">
+            {% for room_type in room_types %}
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        {% if room_type.image %}
+                            <img src="{{ room_type.image.url }}" class="card-img-top" alt="{{ room_type.name }}" style="height: 200px; object-fit: cover;">
+                        {% else %}
+                            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                                <i class="fas fa-bed fa-5x text-secondary"></i>
+                            </div>
+                        {% endif %}
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                {{ room_type.name }}
+                                {% if room_type.is_active %}
+                                    <span class="badge bg-success">Active</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Inactive</span>
+                                {% endif %}
+                            </h5>
+                            <p class="card-text">
+                                <strong class="text-primary">${{ room_type.price_per_night }}/night</strong><br>
+                                <i class="fas fa-users"></i> Max Occupancy: {{ room_type.max_occupancy }}<br>
+                                <i class="fas fa-door-open"></i> Available Rooms: {{ room_type.rooms_available }}<br>
+                                {% if room_type.room_size %}
+                                    <i class="fas fa-ruler-combined"></i> Size: {{ room_type.room_size }} m²<br>
+                                {% endif %}
+                                {% if room_type.bed_type %}
+                                    <i class="fas fa-bed"></i> {{ room_type.bed_type }}
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="card-footer">
+                            <a href="{% url 'partners:room_type_edit' hotel.id room_type.id %}" class="btn btn-sm btn-primary">
+                                <i class="fas fa-edit"></i> Edit
+                            </a>
+                            <a href="{% url 'partners:room_type_delete' hotel.id room_type.id %}" class="btn btn-sm btn-danger">
+                                <i class="fas fa-trash"></i> Delete
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> No room types added yet.
+            <a href="{% url 'partners:room_type_create' hotel.id %}" class="alert-link">Add your first room type</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

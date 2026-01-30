@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+
+{% block title %}Payment Receipt{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm" id="receipt">
+                <div class="card-header bg-white border-bottom py-4">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h3 class="mb-0">Payment Receipt</h3>
+                            <p class="text-muted mb-0">csx3006 Travel Booking System</p>
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            <img src="https://via.placeholder.com/150x50?text=LOGO" alt="Logo">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-body p-4">
+                    <!-- Receipt Info -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6 class="text-muted">RECEIPT TO:</h6>
+                            <p class="mb-0"><strong>{{ payment.user.get_full_name }}</strong></p>
+                            <p class="mb-0">{{ payment.user.email }}</p>
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            <p class="mb-1"><strong>Receipt #:</strong> {{ receipt.receipt_id }}</p>
+                            <p class="mb-1"><strong>Date:</strong> {{ receipt.generated_at|date:"M d, Y" }}</p>
+                            <p class="mb-1"><strong>Payment ID:</strong> {{ payment.payment_id }}</p>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <!-- Booking Details -->
+                    <h5 class="mb-3">Booking Information</h5>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p><strong>Booking ID:</strong> {{ booking.booking_id }}</p>
+                            <p><strong>Booking Type:</strong> {{ booking.get_booking_type_display }}</p>
+                            <p><strong>Booking Date:</strong> {{ booking.created_at|date:"M d, Y" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            {% if booking.booking_type == 'hotel' %}
+                                <p><strong>Hotel:</strong> {{ booking.hotel_detail.room_type.hotel.name }}</p>
+                                <p><strong>Room Type:</strong> {{ booking.hotel_detail.room_type.name }}</p>
+                                <p><strong>Check-in:</strong> {{ booking.hotel_detail.check_in_date }}</p>
+                                <p><strong>Check-out:</strong> {{ booking.hotel_detail.check_out_date }}</p>
+                                <p><strong>Number of Rooms:</strong> {{ booking.hotel_detail.number_of_rooms }}</p>
+                            {% elif booking.booking_type == 'flight' %}
+                                <p><strong>Flight:</strong> {{ booking.flight_detail.flight.flight_number }}</p>
+                                <p><strong>From:</strong> {{ booking.flight_detail.flight.origin }}</p>
+                                <p><strong>To:</strong> {{ booking.flight_detail.flight.destination }}</p>
+                                <p><strong>Departure:</strong> {{ booking.flight_detail.flight.departure_time }}</p>
+                                <p><strong>Passengers:</strong> {{ booking.flight_detail.passengers.count }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <!-- Payment Details -->
+                    <h5 class="mb-3">Payment Details</h5>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Description</th>
+                                    <th class="text-end">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>{{ booking.get_booking_type_display }} Booking</td>
+                                    <td class="text-end">${{ booking.total_amount }}</td>
+                                </tr>
+                            </tbody>
+                            <tfoot class="table-light">
+                                <tr>
+                                    <th>Total Amount</th>
+                                    <th class="text-end">${{ payment.amount }}</th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                    
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <p><strong>Payment Method:</strong> {{ payment.get_payment_method_display }}</p>
+                            {% if payment.card_last_four %}
+                                <p><strong>Card:</strong> **** **** **** {{ payment.card_last_four }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Transaction ID:</strong> {{ payment.transaction_id }}</p>
+                            <p><strong>Payment Date:</strong> {{ payment.payment_date|date:"M d, Y H:i" }}</p>
+                            <p><strong>Status:</strong> <span class="badge bg-success">{{ payment.get_status_display }}</span></p>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="text-center text-muted">
+                        <p class="mb-1">Thank you for your business!</p>
+                        <p class="mb-0"><small>This is a computer-generated receipt and does not require a signature.</small></p>
+                    </div>
+                </div>
+                
+                <div class="card-footer bg-light text-center py-3">
+                    <p class="mb-0 text-muted">
+                        <small>For questions, contact us at support@csx3006travel.com | +66 123 456 789</small>
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="text-center mt-4 d-print-none">
+                <button onclick="window.print()" class="btn btn-primary">
+                    <i class="fas fa-print"></i> Print Receipt
+                </button>
+                <a href="{% url 'payments:payment_history' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to History
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+@media print {
+    .d-print-none {
+        display: none !important;
+    }
+    body {
+        background: white;
+    }
+}
+</style>
+{% endblock %}

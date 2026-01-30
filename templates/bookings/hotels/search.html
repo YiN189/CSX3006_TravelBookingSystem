@@ -1,0 +1,86 @@
+<!-- templates/bookings/hotels/search.html -->
+{% extends 'base.html' %}
+
+{% block title %}Search Hotels{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4"><i class="fas fa-hotel"></i> Search Hotels</h2>
+
+    <!-- Search Form -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">City</label>
+                        {{ form.city }}
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Check-in Date</label>
+                        {{ form.check_in_date }}
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Check-out Date</label>
+                        {{ form.check_out_date }}
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Guests</label>
+                        {{ form.guests }}
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search"></i> Search
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Results -->
+    <h4 class="mb-3">Available Hotels ({{ hotels.count }})</h4>
+
+    {% if hotels %}
+        <div class="row">
+            {% for hotel in hotels %}
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        {% if hotel.main_image %}
+                            <img src="{{ hotel.main_image.url }}" class="card-img-top" alt="{{ hotel.name }}" style="height: 250px; object-fit: cover;">
+                        {% else %}
+                            <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center" style="height: 250px;">
+                                <i class="fas fa-hotel fa-5x text-white"></i>
+                            </div>
+                        {% endif %}
+                        <div class="card-body">
+                            <h5 class="card-title">{{ hotel.name }}</h5>
+                            <p class="card-text">
+                                <i class="fas fa-map-marker-alt text-danger"></i> {{ hotel.city }}<br>
+                                <i class="fas fa-star text-warning"></i>
+                                {% for i in "12345"|slice:":"|slice:hotel.star_rating %}
+                                    <i class="fas fa-star text-warning"></i>
+                                {% endfor %}
+                                {{ hotel.star_rating }} Star<br>
+                                <i class="fas fa-door-open"></i> {{ hotel.room_types.count }} Room Types
+                            </p>
+                            {% if hotel.amenities %}
+                                <p class="text-muted small">
+                                    <i class="fas fa-check-circle"></i> {{ hotel.amenities|truncatewords:5 }}
+                                </p>
+                            {% endif %}
+                        </div>
+                        <div class="card-footer">
+                            <a href="{% url 'bookings:hotel_detail' hotel.id %}" class="btn btn-primary w-100">
+                                <i class="fas fa-eye"></i> View Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> No hotels found. Try adjusting your search criteria.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

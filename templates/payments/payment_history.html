@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block title %}Payment History{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h2 class="mb-4"><i class="fas fa-history"></i> Payment History</h2>
+    
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Status</label>
+                    <select name="status" class="form-select">
+                        <option value="">All Status</option>
+                        <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+                        <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed</option>
+                        <option value="failed" {% if status_filter == 'failed' %}selected{% endif %}>Failed</option>
+                        <option value="refunded" {% if status_filter == 'refunded' %}selected{% endif %}>Refunded</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Payment Method</label>
+                    <select name="method" class="form-select">
+                        <option value="">All Methods</option>
+                        <option value="credit_card" {% if method_filter == 'credit_card' %}selected{% endif %}>Credit Card</option>
+                        <option value="debit_card" {% if method_filter == 'debit_card' %}selected{% endif %}>Debit Card</option>
+                        <option value="bank_transfer" {% if method_filter == 'bank_transfer' %}selected{% endif %}>Bank Transfer</option>
+                        <option value="paypal" {% if method_filter == 'paypal' %}selected{% endif %}>PayPal</option>
+                        <option value="cash" {% if method_filter == 'cash' %}selected{% endif %}>Cash</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">&nbsp;</label>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-filter"></i> Filter
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    {% if payments %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Payment ID</th>
+                        <th>Booking</th>
+                        <th>Amount</th>
+                        <th>Method</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for payment in payments %}
+                        <tr>
+                            <td><small>{{ payment.payment_id }}</small></td>
+                            <td>
+                                <small>{{ payment.booking.booking_id }}</small><br>
+                                <span class="badge bg-info">{{ payment.booking.get_booking_type_display }}</span>
+                            </td>
+                            <td><strong>${{ payment.amount }}</strong></td>
+                            <td>{{ payment.get_payment_method_display }}</td>
+                            <td>
+                                {% if payment.status == 'completed' %}
+                                    <span class="badge bg-success">Completed</span>
+                                {% elif payment.status == 'pending' %}
+                                    <span class="badge bg-warning">Pending</span>
+                                {% elif payment.status == 'failed' %}
+                                    <span class="badge bg-danger">Failed</span>
+                                {% elif payment.status == 'refunded' %}
+                                    <span class="badge bg-info">Refunded</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ payment.created_at|date:"M d, Y" }}</td>
+                            <td>
+                                {% if payment.status == 'completed' %}
+                                    <a href="{% url 'payments:payment_receipt' payment.payment_id %}" 
+                                       class="btn btn-sm btn-outline-primary" target="_blank">
+                                        <i class="fas fa-receipt"></i> Receipt
+                                    </a>
+                                    <a href="{% url 'payments:request_refund' payment.payment_id %}" 
+                                       class="btn btn-sm btn-outline-warning">
+                                        <i class="fas fa-undo"></i> Refund
+                                    </a>
+                                {% elif payment.status == 'failed' %}
+                                    <a href="{% url 'payments:payment_page' payment.booking.booking_id %}" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-redo"></i> Retry
+                                    </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> No payment records found.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

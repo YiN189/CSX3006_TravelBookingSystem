@@ -1,0 +1,241 @@
+<!-- templates/bookings/booking_detail.html -->
+{% extends 'base.html' %}
+
+{% block title %}Booking Details{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header {% if booking.status == 'confirmed' %}bg-success{% elif booking.status == 'pending' %}bg-warning{% elif booking.status == 'cancelled' %}bg-danger{% else %}bg-secondary{% endif %} text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-receipt"></i> Booking Details
+                        <span class="badge bg-white text-dark float-end">{{ booking.get_status_display }}</span>
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p><strong>Booking ID:</strong><br>{{ booking.booking_id }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Booking Date:</strong><br>{{ booking.created_at|date:"F d, Y H:i" }}</p>
+                        </div>
+                    </div>
+
+                    <!-- NEW: Payment Status Section -->
+                    {% if has_payment %}
+                        <div class="alert {% if booking.payment.status == 'completed' %}alert-success{% elif booking.payment.status == 'pending' %}alert-warning{% elif booking.payment.status == 'failed' %}alert-danger{% elif booking.payment.status == 'refunded' %}alert-info{% endif %}">
+                            <div class="row align-items-center">
+                                <div class="col-md-8">
+                                    <strong><i class="fas fa-credit-card"></i> Payment Status:</strong>
+                                    {% if booking.payment.status == 'completed' %}
+                                        <span class="badge bg-success ms-2">
+                                            <i class="fas fa-check-circle"></i> Paid
+                                        </span>
+                                    {% elif booking.payment.status == 'pending' %}
+                                        <span class="badge bg-warning ms-2">
+                                            <i class="fas fa-clock"></i> Payment Pending
+                                        </span>
+                                    {% elif booking.payment.status == 'failed' %}
+                                        <span class="badge bg-danger ms-2">
+                                            <i class="fas fa-times-circle"></i> Payment Failed
+                                        </span>
+                                    {% elif booking.payment.status == 'refunded' %}
+                                        <span class="badge bg-info ms-2">
+                                            <i class="fas fa-undo"></i> Refunded
+                                        </span>
+                                    {% endif %}
+                                </div>
+                                {% if booking.payment.status == 'completed' %}
+                                    <div class="col-md-4 text-end">
+                                        <small class="text-muted d-block">Payment ID:</small>
+                                        <small><code>{{ booking.payment.payment_id|truncatechars:12 }}</code></small>
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            {% if booking.payment.status == 'completed' %}
+                                <hr class="my-2">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <small><strong>Transaction ID:</strong> {{ booking.payment.transaction_id }}</small>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <small><strong>Payment Date:</strong> {{ booking.payment.payment_date|date:"M d, Y H:i" }}</small>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% elif booking.status == 'pending' %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>Payment Required:</strong> Please complete payment to confirm your booking.
+                        </div>
+                    {% endif %}
+
+                    <hr>
+
+                    {% if booking.booking_type == 'hotel' %}
+                        <!-- Hotel Booking Details -->
+                        <h5><i class="fas fa-hotel"></i> Hotel Booking</h5>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p>
+                                    <strong>Hotel:</strong><br>
+                                    {{ booking.hotel_details.hotel.name }}<br>
+                                    <small class="text-muted">{{ booking.hotel_details.hotel.address }}, {{ booking.hotel_details.hotel.city }}</small>
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <p>
+                                    <strong>Room Type:</strong><br>
+                                    {{ booking.hotel_details.room_type.name }}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <p><strong>Check-in:</strong><br>{{ booking.hotel_details.check_in_date|date:"M d, Y" }}</p>
+                            </div>
+                            <div class="col-md-4">
+                                <p><strong>Check-out:</strong><br>{{ booking.hotel_details.check_out_date|date:"M d, Y" }}</p>
+                            </div>
+                            <div class="col-md-4">
+                                <p><strong>Nights:</strong><br>{{ booking.hotel_details.number_of_nights }}</p>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Rooms:</strong> {{ booking.hotel_details.number_of_rooms }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Guests:</strong> {{ booking.hotel_details.number_of_guests }}</p>
+                            </div>
+                        </div>
+
+                    {% else %}
+                        <!-- Flight Booking Details -->
+                        <h5><i class="fas fa-plane"></i> Flight Booking</h5>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p>
+                                    <strong>Flight Number:</strong><br>
+                                    {{ booking.flight_details.flight.flight_number }}
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <p>
+                                    <strong>Class:</strong><br>
+                                    {{ booking.flight_details.flight.class_type }}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p>
+                                    <strong>Departure:</strong><br>
+                                    {{ booking.flight_details.flight.origin }}<br>
+                                    <small>{{ booking.flight_details.flight.departure_time|date:"M d, Y H:i" }}</small>
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <p>
+                                    <strong>Arrival:</strong><br>
+                                    {{ booking.flight_details.flight.destination }}<br>
+                                    <small>{{ booking.flight_details.flight.arrival_time|date:"M d, Y H:i" }}</small>
+                                </p>
+                            </div>
+                        </div>
+
+                        <p><strong>Passengers:</strong> {{ booking.flight_details.number_of_passengers }}</p>
+
+                        {% if booking.flight_details.passengers.all %}
+                            <h6 class="mt-3">Passenger Information</h6>
+                            <ul class="list-group">
+                                {% for passenger in booking.flight_details.passengers.all %}
+                                    <li class="list-group-item">
+                                        {{ passenger.title }} {{ passenger.first_name }} {{ passenger.last_name }}
+                                        <small class="text-muted">(DOB: {{ passenger.date_of_birth }})</small>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    {% endif %}
+
+                    {% if booking.notes %}
+                        <hr>
+                        <p><strong>Special Requests:</strong><br>{{ booking.notes }}</p>
+                    {% endif %}
+
+                    <hr>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4>Total Amount:</h4>
+                        <h3 class="text-primary">${{ booking.total_amount }}</h3>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <!-- Back Button -->
+                        <a href="{% url 'bookings:my_bookings' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to My Bookings
+                        </a>
+
+                        <!-- Action Buttons -->
+                        <div class="btn-group-action">
+                            {% if booking.status == 'pending' and not payment_completed %}
+                                <!-- Pay Now Button -->
+                                <a href="{% url 'payments:payment_page' booking.booking_id %}"
+                                   class="btn btn-success">
+                                    <i class="fas fa-credit-card"></i> Complete Payment
+                                </a>
+                            {% elif payment_completed %}
+                                <!-- View Receipt Button -->
+                                <a href="{% url 'payments:payment_receipt' booking.payment.payment_id %}"
+                                   class="btn btn-primary me-2" target="_blank">
+                                    <i class="fas fa-receipt"></i> View Receipt
+                                </a>
+                            {% endif %}
+
+                            {% if booking.status in 'pending,confirmed' %}
+                                {% if payment_completed %}
+                                    <!-- Request Refund Button -->
+                                    <a href="{% url 'payments:request_refund' booking.payment.payment_id %}"
+                                       class="btn btn-warning">
+                                        <i class="fas fa-undo"></i> Request Refund
+                                    </a>
+                                {% else %}
+                                    <!-- Cancel Booking Button (for unpaid bookings) -->
+                                    <a href="{% url 'bookings:booking_cancel' booking.booking_id %}"
+                                       class="btn btn-danger"
+                                       onclick="return confirm('Are you sure you want to cancel this booking?')">
+                                        <i class="fas fa-times"></i> Cancel Booking
+                                    </a>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Payment Reminder for Pending Bookings -->
+                    {% if booking.status == 'pending' and not payment_completed %}
+                        <div class="mt-3">
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle"></i>
+                                Please complete payment to confirm your booking. Unpaid bookings may be cancelled.
+                            </small>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

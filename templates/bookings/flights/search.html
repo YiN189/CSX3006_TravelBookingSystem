@@ -1,0 +1,111 @@
+<!-- templates/bookings/flights/search.html -->
+{% extends 'base.html' %}
+
+{% block title %}Search Flights{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4"><i class="fas fa-plane"></i> Search Flights</h2>
+
+    <!-- Search Form -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Origin</label>
+                        {{ form.origin }}
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Destination</label>
+                        {{ form.destination }}
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Departure Date</label>
+                        {{ form.departure_date }}
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Passengers</label>
+                        {{ form.passengers }}
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search"></i> Search Flights
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Results -->
+    <h4 class="mb-3">Available Flights ({{ flights.count }})</h4>
+
+    {% if flights %}
+        <div class="list-group">
+            {% for flight in flights %}
+                <div class="list-group-item list-group-item-action mb-3">
+                    <div class="row align-items-center">
+                        <div class="col-md-2 text-center">
+                            {% if flight.airline_logo %}
+                                <img src="{{ flight.airline_logo.url }}" alt="Airline" style="max-width: 80px;">
+                            {% else %}
+                                <i class="fas fa-plane fa-3x text-primary"></i>
+                            {% endif %}
+                            <p class="mb-0 mt-2"><strong>{{ flight.flight_number }}</strong></p>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="row">
+                                <div class="col text-center">
+                                    <h5>{{ flight.origin }}</h5>
+                                    <p class="mb-0">{{ flight.departure_time|date:"H:i" }}</p>
+                                    <small class="text-muted">{{ flight.departure_time|date:"M d, Y" }}</small>
+                                </div>
+                                <div class="col-auto text-center">
+                                    <i class="fas fa-plane fa-2x text-muted"></i>
+                                    <p class="mb-0 small">{{ flight.duration }}</p>
+                                </div>
+                                <div class="col text-center">
+                                    <h5>{{ flight.destination }}</h5>
+                                    <p class="mb-0">{{ flight.arrival_time|date:"H:i" }}</p>
+                                    <small class="text-muted">{{ flight.arrival_time|date:"M d, Y" }}</small>
+                                </div>
+                            </div>
+                            <p class="mb-0 mt-2">
+                                <span class="badge bg-info">{{ flight.class_type }}</span>
+                                {% if flight.aircraft_type %}
+                                    <span class="badge bg-secondary">{{ flight.aircraft_type }}</span>
+                                {% endif %}
+                                <span class="badge bg-success">{{ flight.seats_available }} seats available</span>
+                            </p>
+                        </div>
+
+                        <div class="col-md-2 text-center">
+                            <h4 class="text-primary mb-0">${{ flight.price }}</h4>
+                            <small class="text-muted">per person</small>
+                        </div>
+
+                        <div class="col-md-2 text-center">
+                            <a href="{% url 'bookings:flight_detail' flight.id %}" class="btn btn-primary btn-sm w-100 mb-2">
+                                <i class="fas fa-eye"></i> Details
+                            </a>
+                            {% if user.is_authenticated %}
+                                <a href="{% url 'bookings:flight_booking_create' flight.id %}" class="btn btn-success btn-sm w-100">
+                                    <i class="fas fa-calendar-check"></i> Book
+                                </a>
+                            {% else %}
+                                <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="btn btn-outline-primary btn-sm w-100">
+                                    Login to Book
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> No flights found. Try adjusting your search criteria.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

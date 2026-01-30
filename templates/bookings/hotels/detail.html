@@ -1,0 +1,121 @@
+<!-- templates/bookings/hotels/detail.html -->
+{% extends 'base.html' %}
+
+{% block title %}{{ hotel.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'bookings:hotel_search' %}">Hotels</a></li>
+            <li class="breadcrumb-item active">{{ hotel.name }}</li>
+        </ol>
+    </nav>
+
+    <!-- Hotel Info -->
+    <div class="card mb-4">
+        {% if hotel.main_image %}
+            <img src="{{ hotel.main_image.url }}" class="card-img-top" alt="{{ hotel.name }}" style="max-height: 400px; object-fit: cover;">
+        {% endif %}
+        <div class="card-body">
+            <h2>{{ hotel.name }}</h2>
+            <p class="lead">
+                <i class="fas fa-map-marker-alt text-danger"></i> {{ hotel.address }}, {{ hotel.city }}<br>
+                <i class="fas fa-star text-warning"></i>
+                {% for i in "12345"|slice:":"|slice:hotel.star_rating %}
+                    <i class="fas fa-star text-warning"></i>
+                {% endfor %}
+                {{ hotel.star_rating }} Star Hotel
+            </p>
+
+            {% if hotel.description %}
+                <p>{{ hotel.description }}</p>
+            {% endif %}
+
+            <div class="row mt-3">
+                <div class="col-md-6">
+                    <h5>Hotel Information</h5>
+                    <p>
+                        <strong>Check-in:</strong> {{ hotel.check_in_time|time:"H:i" }}<br>
+                        <strong>Check-out:</strong> {{ hotel.check_out_time|time:"H:i" }}<br>
+                        {% if hotel.email %}
+                            <strong>Email:</strong> {{ hotel.email }}<br>
+                        {% endif %}
+                        {% if hotel.phone %}
+                            <strong>Phone:</strong> {{ hotel.phone }}
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="col-md-6">
+                    {% if hotel.amenities %}
+                        <h5>Amenities</h5>
+                        <p>{{ hotel.amenities }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Room Types -->
+    <h3 class="mb-3">Available Room Types</h3>
+
+    {% if room_types %}
+        <div class="row">
+            {% for room_type in room_types %}
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        {% if room_type.image %}
+                            <img src="{{ room_type.image.url }}" class="card-img-top" alt="{{ room_type.name }}" style="height: 200px; object-fit: cover;">
+                        {% else %}
+                            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                                <i class="fas fa-bed fa-5x text-secondary"></i>
+                            </div>
+                        {% endif %}
+                        <div class="card-body">
+                            <h5 class="card-title">{{ room_type.name }}</h5>
+                            <h4 class="text-primary">${{ room_type.price_per_night }}<small class="text-muted">/night</small></h4>
+
+                            {% if room_type.description %}
+                                <p class="card-text">{{ room_type.description|truncatewords:20 }}</p>
+                            {% endif %}
+
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-users"></i> Max {{ room_type.max_occupancy }} guests</li>
+                                <li><i class="fas fa-door-open"></i> {{ room_type.rooms_available }} rooms available</li>
+                                {% if room_type.room_size %}
+                                    <li><i class="fas fa-ruler-combined"></i> {{ room_type.room_size }} m²</li>
+                                {% endif %}
+                                {% if room_type.bed_type %}
+                                    <li><i class="fas fa-bed"></i> {{ room_type.bed_type }}</li>
+                                {% endif %}
+                            </ul>
+
+                            {% if room_type.amenities %}
+                                <p class="text-muted small">
+                                    <strong>Amenities:</strong> {{ room_type.amenities|truncatewords:8 }}
+                                </p>
+                            {% endif %}
+                        </div>
+                        <div class="card-footer">
+                            {% if user.is_authenticated %}
+                                <a href="{% url 'bookings:hotel_booking_create' room_type.id %}" class="btn btn-success w-100">
+                                    <i class="fas fa-calendar-check"></i> Book Now
+                                </a>
+                            {% else %}
+                                <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="btn btn-primary w-100">
+                                    <i class="fas fa-sign-in-alt"></i> Login to Book
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle"></i> No room types available at this hotel.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

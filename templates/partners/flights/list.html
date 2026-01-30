@@ -1,0 +1,74 @@
+<!-- templates/partners/flights/list.html -->
+{% extends 'base.html' %}
+
+{% block title %}My Flights{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-plane"></i> My Flights</h2>
+        <div>
+            <a href="{% url 'partners:partner_dashboard' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Dashboard
+            </a>
+            <a href="{% url 'partners:flight_create' %}" class="btn btn-success">
+                <i class="fas fa-plus"></i> Add New Flight
+            </a>
+        </div>
+    </div>
+
+    {% if flights %}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Flight Number</th>
+                        <th>Route</th>
+                        <th>Departure</th>
+                        <th>Arrival</th>
+                        <th>Price</th>
+                        <th>Seats</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for flight in flights %}
+                        <tr>
+                            <td><strong>{{ flight.flight_number }}</strong></td>
+                            <td>
+                                <i class="fas fa-plane-departure"></i> {{ flight.origin }}<br>
+                                <i class="fas fa-plane-arrival"></i> {{ flight.destination }}
+                            </td>
+                            <td>{{ flight.departure_time|date:"M d, Y H:i" }}</td>
+                            <td>{{ flight.arrival_time|date:"M d, Y H:i" }}</td>
+                            <td><strong class="text-primary">${{ flight.price }}</strong></td>
+                            <td>{{ flight.seats_available }}/{{ flight.total_seats }}</td>
+                            <td>
+                                {% if flight.is_active %}
+                                    <span class="badge bg-success">Active</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'partners:flight_edit' flight.id %}" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'partners:flight_delete' flight.id %}" class="btn btn-sm btn-danger">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> You haven't added any flights yet.
+            <a href="{% url 'partners:flight_create' %}" class="alert-link">Add your first flight</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

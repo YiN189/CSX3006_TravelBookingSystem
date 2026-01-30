@@ -1,0 +1,44 @@
+<!-- templates/bookings/booking_cancel.html -->
+{% extends 'base.html' %}
+
+{% block title %}Cancel Booking{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Confirm Cancellation</h4>
+                </div>
+                <div class="card-body">
+                    <p class="lead">Are you sure you want to cancel this booking?</p>
+
+                    <div class="alert alert-warning">
+                        <p class="mb-1"><strong>Booking ID:</strong> {{ booking.booking_id }}</p>
+                        <p class="mb-1"><strong>Type:</strong> {{ booking.get_booking_type_display }}</p>
+                        <p class="mb-0"><strong>Total Amount:</strong> ${{ booking.total_amount }}</p>
+                    </div>
+
+                    <p class="text-danger">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <strong>Warning:</strong> This action cannot be undone. Your booking will be cancelled and the reserved items will be made available again.
+                    </p>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-times"></i> Yes, Cancel Booking
+                            </button>
+                            <a href="{% url 'bookings:booking_detail' booking.booking_id %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> No, Go Back
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
