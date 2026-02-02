@@ -145,8 +145,15 @@ class HotelBookingDetail(models.Model):
 
 class FlightBookingDetail(models.Model):
     """
-    Flight-specific booking details
+    Flight-specific booking details (includes passenger info)
     """
+    TITLE_CHOICES = [
+        ('Mr', 'Mr.'),
+        ('Mrs', 'Mrs.'),
+        ('Ms', 'Ms.'),
+        ('Dr', 'Dr.'),
+    ]
+    
     booking = models.OneToOneField(
         Booking,
         on_delete=models.CASCADE,
@@ -171,6 +178,43 @@ class FlightBookingDetail(models.Model):
         decimal_places=2,
         help_text='Price per seat at time of booking'
     )
+    
+    # ============================================
+    # PASSENGER INFORMATION (moved from Passenger entity)
+    # ============================================
+    passenger_title = models.CharField(
+        max_length=10,
+        choices=TITLE_CHOICES,
+        default='Mr',
+        help_text='Passenger title'
+    )
+    
+    passenger_first_name = models.CharField(
+        max_length=100,
+        help_text='Passenger first name',
+        blank=True,
+        null=True
+    )
+    
+    passenger_last_name = models.CharField(
+        max_length=100,
+        help_text='Passenger last name',
+        blank=True,
+        null=True
+    )
+    
+    passenger_dob = models.DateField(
+        blank=True,
+        null=True,
+        help_text='Passenger date of birth'
+    )
+    
+    passenger_passport = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+        help_text='Passport number'
+    )
 
     class Meta:
         verbose_name = 'Flight Booking Detail'
@@ -182,6 +226,12 @@ class FlightBookingDetail(models.Model):
     def calculate_total(self):
         """Calculate total cost for flight booking"""
         return self.price_per_seat * self.number_of_passengers
+    
+    @property
+    def passenger_full_name(self):
+        """Get passenger full name"""
+        return f"{self.passenger_title} {self.passenger_first_name} {self.passenger_last_name}"
+
 
 
 class Passenger(models.Model):

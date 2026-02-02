@@ -21,4 +21,11 @@ urlpatterns = [
     path('booking/<uuid:booking_id>/', views.booking_detail, name='booking_detail'),
     path('booking/<uuid:booking_id>/cancel/', views.booking_cancel, name='booking_cancel'),
     path('cancel/<uuid:booking_id>/', views.cancel_booking, name='cancel_booking'),
+    
+    # ========================================
+    # RAW SQL VIEWS (for presentation demo)
+    # ========================================
+    path('raw/my-bookings/', views.my_bookings_raw_sql, name='my_bookings_raw'),
+    path('raw/hotels/', views.hotel_search_raw_sql, name='hotel_search_raw'),
 ]
+

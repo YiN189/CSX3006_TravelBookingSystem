@@ -84,6 +84,85 @@ class BookingQueries:
         return result[0] if result else None
     
     @staticmethod
+    def get_flight_booking_details(booking_id):
+        """
+        Get flight booking details with flight info
+        """
+        query = """
+            SELECT 
+                fbd.id,
+                fbd.number_of_passengers,
+                fbd.price_per_seat,
+                f.flight_number,
+                f.origin,
+                f.destination,
+                f.departure_time,
+                f.arrival_time,
+                f.class_type,
+                f.aircraft_type,
+                p.name as partner_name
+            FROM bookings_flightbookingdetail fbd
+            INNER JOIN partners_flight f ON fbd.flight_id = f.id
+            INNER JOIN partners_partner p ON f.partner_id = p.id
+            WHERE fbd.booking_id = %s
+        """
+        result = DatabaseManager.execute_query(query, [booking_id])
+        return result[0] if result else None
+    
+    @staticmethod
+    def get_passengers_for_booking(flight_booking_id):
+        """
+        Get all passengers for a flight booking
+        """
+        query = """
+            SELECT 
+                p.id,
+                p.title,
+                p.first_name,
+                p.last_name,
+                p.date_of_birth,
+                p.passport_number,
+                CONCAT(p.title, ' ', p.first_name, ' ', p.last_name) as full_name
+            FROM bookings_passenger p
+            WHERE p.flight_booking_id = %s
+            ORDER BY p.id
+        """
+        return DatabaseManager.execute_query(query, [flight_booking_id])
+    
+    @staticmethod
+    def get_flight_booking_with_passengers(booking_id):
+        """
+        Get complete flight booking with all passengers (using JOIN)
+        """
+        query = """
+            SELECT 
+                b.booking_id,
+                b.status,
+                b.total_amount,
+                b.created_at,
+                f.flight_number,
+                f.origin,
+                f.destination,
+                f.departure_time,
+                f.arrival_time,
+                fbd.number_of_passengers,
+                fbd.price_per_seat,
+                p.title as passenger_title,
+                p.first_name as passenger_first_name,
+                p.last_name as passenger_last_name,
+                p.date_of_birth as passenger_dob,
+                p.passport_number as passenger_passport
+            FROM bookings_booking b
+            INNER JOIN bookings_flightbookingdetail fbd ON b.id = fbd.booking_id
+            INNER JOIN partners_flight f ON fbd.flight_id = f.id
+            LEFT JOIN bookings_passenger p ON fbd.id = p.flight_booking_id
+            WHERE b.booking_id = %s
+            ORDER BY p.id
+        """
+        return DatabaseManager.execute_query(query, [booking_id])
+
+    
+    @staticmethod
     def get_available_rooms(hotel_id, check_in, check_out):
         """
         Get available rooms for a hotel on specific dates

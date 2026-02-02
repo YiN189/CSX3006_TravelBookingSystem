@@ -21,19 +21,37 @@ from utils.db_manager import BookingQueries, HotelQueries
 def hotel_search(request):
     """
     Search for hotels
+    Uses RAW SQL QUERIES when raw=true parameter is set
     """
     form = HotelSearchForm(request.GET or None)
-    hotels = Hotel.objects.filter(is_active=True)
+    use_raw_sql = request.GET.get('raw', 'false').lower() == 'true'
+    
+    if use_raw_sql:
+        # ============================================
+        # RAW SQL APPROACH (for presentation)
+        # ============================================
+        city = request.GET.get('city', '')
+        hotels = HotelQueries.search_hotels(city=city if city else None)
+        
+        context = {
+            'form': form,
+            'hotels': hotels,
+            'using_raw_sql': True,
+        }
+    else:
+        # ORM approach (Django default)
+        hotels = Hotel.objects.filter(is_active=True)
 
-    if form.is_valid():
-        city = form.cleaned_data.get('city')
-        if city:
-            hotels = hotels.filter(city__icontains=city)
+        if form.is_valid():
+            city = form.cleaned_data.get('city')
+            if city:
+                hotels = hotels.filter(city__icontains=city)
 
-    context = {
-        'form': form,
-        'hotels': hotels,
-    }
+        context = {
+            'form': form,
+            'hotels': hotels,
+            'using_raw_sql': False,
+        }
 
     return render(request, 'bookings/hotels/search.html', context)
 
@@ -280,16 +298,49 @@ def flight_booking_create(request, flight_id):
 def my_bookings(request):
     """
     View all bookings for current user
+    Uses RAW SQL QUERIES for database access
     """
-    bookings = Booking.objects.filter(user=request.user).select_related(
-        'hotel_details__hotel',
-        'hotel_details__room_type',
-        'flight_details__flight'
-    ).prefetch_related('payment')  # NEW: Add payment prefetch
-
-    context = {
-        'bookings': bookings,
-    }
+    # ============================================
+    # USING RAW SQL (for presentation)
+    # ============================================
+    use_raw_sql = request.GET.get('raw', 'true').lower() == 'true'
+    
+    if use_raw_sql:
+        # RAW SQL approach - using our custom queries
+        from utils.db_manager import BookingQueries
+        
+        raw_bookings = BookingQueries.get_user_bookings(request.user.id)
+        
+        # Enrich each booking with details
+        for booking in raw_bookings:
+            if booking['booking_type'] == 'hotel':
+                # Get hotel details using raw SQL
+                booking['hotel_details'] = BookingQueries.get_hotel_booking_details(booking['id'])
+        
+        # For template compatibility, also get ORM bookings for payment info
+        bookings = Booking.objects.filter(user=request.user).select_related(
+            'hotel_details__hotel',
+            'hotel_details__room_type',
+            'flight_details__flight'
+        ).prefetch_related('payment')
+        
+        context = {
+            'bookings': bookings,
+            'raw_bookings': raw_bookings,  # Raw SQL results
+            'using_raw_sql': True,
+        }
+    else:
+        # ORM approach (Django default)
+        bookings = Booking.objects.filter(user=request.user).select_related(
+            'hotel_details__hotel',
+            'hotel_details__room_type',
+            'flight_details__flight'
+        ).prefetch_related('payment')
+        
+        context = {
+            'bookings': bookings,
+            'using_raw_sql': False,
+        }
 
     return render(request, 'bookings/my_bookings.html', context)
 
