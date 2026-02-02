@@ -1,0 +1,251 @@
+<!-- templates/admin/dashboard.html -->
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block title %}Dashboard - {{ site_title|default:"Django site admin" }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="mb-4">System Dashboard</h1>
+
+    <!-- User Statistics -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h3>User Statistics</h3>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-primary text-white mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Total Users</h5>
+                    <h2>{{ total_users }}</h2>
+                    <small>+{{ new_users_this_month }} this month</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Customers</h5>
+                    <h2>{{ customers }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Partners</h5>
+                    <h2>{{ partners }}</h2>
+                    <small>{{ verified_partners }} verified</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Admins</h5>
+                    <h2>{{ admins }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Inventory Statistics -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h3>Inventory Statistics</h3>
+        </div>
+        <div class="col-md-4">
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Hotels</h5>
+                    <h2>{{ total_hotels }}</h2>
+                    <div class="progress">
+                        <div class="progress-bar bg-success" style="width: {{ active_hotels|multiply:100|divide:total_hotels|default:0 }}%"></div>
+                    </div>
+                    <small>{{ active_hotels }} active</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Flights</h5>
+                    <h2>{{ total_flights }}</h2>
+                    <div class="progress">
+                        <div class="progress-bar bg-info" style="width: {{ active_flights|multiply:100|divide:total_flights|default:0 }}%"></div>
+                    </div>
+                    <small>{{ active_flights }} active</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Partners</h5>
+                    <h2>{{ total_partners }}</h2>
+                    <div class="progress">
+                        <div class="progress-bar bg-primary" style="width: {{ verified_partners|multiply:100|divide:total_partners|default:0 }}%"></div>
+                    </div>
+                    <small>{{ verified_partners }} verified</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Booking Statistics -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h3>Booking Statistics</h3>
+        </div>
+        <div class="col-md-3">
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Total Bookings</h5>
+                    <h2>{{ total_bookings }}</h2>
+                    <small>+{{ bookings_this_month }} this month</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-warning mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Pending</h5>
+                    <h2 class="text-warning">{{ pending_bookings }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-success mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Confirmed</h5>
+                    <h2 class="text-success">{{ confirmed_bookings }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-danger mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Cancelled</h5>
+                    <h2 class="text-danger">{{ cancelled_bookings }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Revenue Statistics -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h3>Revenue Statistics</h3>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-success text-white mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Total Revenue</h5>
+                    <h2>${{ total_revenue|floatformat:2 }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-info text-white mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">This Month</h5>
+                    <h2>${{ revenue_this_month|floatformat:2 }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-primary text-white mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Avg. Booking Value</h5>
+                    <h2>${{ avg_booking_value|floatformat:2 }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Bookings & Top Customers -->
+    <div class="row mb-4">
+        <div class="col-md-7">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Recent Bookings</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>User</th>
+                                <th>Type</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for booking in recent_bookings %}
+                            <tr>
+                                <td>{{ booking.booking_id|truncatechars:10 }}</td>
+                                <td>{{ booking.user.username }}</td>
+                                <td>{{ booking.get_booking_type_display }}</td>
+                                <td>${{ booking.total_amount }}</td>
+                                <td>
+                                    {% if booking.status == 'pending' %}
+                                        <span class="badge bg-warning">{{ booking.get_status_display }}</span>
+                                    {% elif booking.status == 'confirmed' %}
+                                        <span class="badge bg-success">{{ booking.get_status_display }}</span>
+                                    {% elif booking.status == 'cancelled' %}
+                                        <span class="badge bg-danger">{{ booking.get_status_display }}</span>
+                                    {% else %}
+                                        <span class="badge bg-info">{{ booking.get_status_display }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ booking.created_at|date:"M d" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-5">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Top Customers</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Customer</th>
+                                <th>Bookings</th>
+                                <th>Total Spent</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for customer in top_customers %}
+                            <tr>
+                                <td>{{ customer.username }}</td>
+                                <td>{{ customer.booking_count }}</td>
+                                <td>${{ customer.total_spent|default:0|floatformat:2 }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .progress {
+        height: 5px;
+        margin-top: 10px;
+    }
+</style>
+{% endblock %}

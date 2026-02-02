@@ -68,12 +68,6 @@ class UserProfile(models.Model):
         related_name='profile'
     )
 
-    bio = models.TextField(
-        blank=True,
-        null=True,
-        help_text='User biography'
-    )
-
     profile_picture = models.ImageField(
         upload_to='profiles/',
         blank=True,
@@ -102,12 +96,7 @@ class UserProfile(models.Model):
         null=True
     )
 
-    postal_code = models.CharField(
-        max_length=20,
-        blank=True,
-        null=True
-    )
-
     def __str__(self):
         return f"Profile of {self.user.username}"
+
     

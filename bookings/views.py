@@ -14,6 +14,7 @@ from .forms import (
     PassengerFormSet
 )
 from partners.models import Hotel, RoomType, Flight
+from utils.db_manager import BookingQueries, HotelQueries
 
 
 # Hotel Booking Views
@@ -324,10 +325,6 @@ def booking_cancel(request, booking_id):
         messages.error(request, 'This booking cannot be cancelled.')
         return redirect('bookings:booking_detail', booking_id=booking.booking_id)
 
-    # NEW: Check if booking has been paid
-    if hasattr(booking, 'payment') and booking.payment.status == 'completed':
-        messages.warning(request, 'This booking has been paid. Please request a refund from payment history.')
-        return redirect('payments:request_refund', payment_id=booking.payment.payment_id)
 
     if request.method == 'POST':
         try:
@@ -367,11 +364,6 @@ def cancel_booking(request, booking_id):
         messages.error(request, 'This booking cannot be cancelled.')
         return redirect('bookings:booking_detail', booking_id=booking.booking_id)
     
-    # If payment exists and is completed, need to refund
-    if hasattr(booking, 'payment') and booking.payment.status == 'completed':
-        messages.warning(request, 'This booking has been paid. Please request a refund from payment history.')
-        return redirect('payments:request_refund', payment_id=booking.payment.payment_id)
-    
     # Cancel the booking
     booking.status = 'cancelled'
     booking.save()
@@ -388,3 +380,44 @@ def cancel_booking(request, booking_id):
     
     messages.success(request, 'Booking cancelled successfully.')
     return redirect('bookings:my_bookings')
+
+
+# ============================================
+# Raw SQL Views (Alternative to ORM)
+# ============================================
+
+@login_required
+def my_bookings_raw_sql(request):
+    """
+    My bookings using raw SQL instead of ORM
+    """
+    # Get bookings using raw SQL
+    bookings = BookingQueries.get_user_bookings(request.user.id)
+    
+    # For each booking, get details
+    for booking in bookings:
+        if booking['booking_type'] == 'hotel':
+            booking['details'] = BookingQueries.get_hotel_booking_details(booking['booking_id'])
+    
+    context = {
+        'bookings': bookings
+    }
+    return render(request, 'bookings/my_bookings.html', context)
+
+
+def hotel_search_raw_sql(request):
+    """
+    Hotel search using raw SQL
+    """
+    city = request.GET.get('city')
+    min_price = request.GET.get('min_price')
+    max_price = request.GET.get('max_price')
+    
+    # Search using raw SQL
+    hotels = HotelQueries.search_hotels(city, min_price, max_price)
+    
+    context = {
+        'hotels': hotels,
+        'search_city': city,
+    }
+    return render(request, 'bookings/hotel_search.html', context)

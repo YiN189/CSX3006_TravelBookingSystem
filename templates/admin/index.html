@@ -1,0 +1,36 @@
+<!-- templates/admin/index.html -->
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrahead %}
+{{ block.super }}
+<style>
+    .dashboard-link {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+    .dashboard-link a {
+        color: white;
+        text-decoration: none;
+        font-size: 18px;
+        font-weight: bold;
+    }
+    .dashboard-link a:hover {
+        text-decoration: underline;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-link">
+    <a href="{% url 'admin_dashboard' %}">
+        📊 View System Dashboard & Statistics
+    </a>
+</div>
+
+{{ block.super }}
+{% endblock %}

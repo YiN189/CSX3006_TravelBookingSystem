@@ -85,10 +85,6 @@
                                        class="btn btn-sm btn-outline-primary" target="_blank">
                                         <i class="fas fa-receipt"></i> Receipt
                                     </a>
-                                    <a href="{% url 'payments:request_refund' payment.payment_id %}" 
-                                       class="btn btn-sm btn-outline-warning">
-                                        <i class="fas fa-undo"></i> Refund
-                                    </a>
                                 {% elif payment.status == 'failed' %}
                                     <a href="{% url 'payments:payment_page' payment.booking.booking_id %}" 
                                        class="btn btn-sm btn-outline-primary">

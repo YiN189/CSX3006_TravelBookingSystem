@@ -9,7 +9,7 @@ SECRET_KEY = 'django-insecure-your-secret-key-here-change-in-production'
 
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 # Application definition
 INSTALLED_APPS = [
@@ -58,10 +58,23 @@ TEMPLATES = [
 WSGI_APPLICATION = 'csx3006TravelBookingSystem.wsgi.application'
 
 # Database
+# OLD (SQLite):
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+
+# NEW (PostgreSQL):
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'travel_booking_db',
+        'USER': 'postgres',           # Your PostgreSQL username
+        'PASSWORD': 'me@npkk.dev',    # PostgreSQL password
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 

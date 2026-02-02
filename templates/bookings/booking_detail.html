@@ -205,20 +205,12 @@
                             {% endif %}
 
                             {% if booking.status in 'pending,confirmed' %}
-                                {% if payment_completed %}
-                                    <!-- Request Refund Button -->
-                                    <a href="{% url 'payments:request_refund' booking.payment.payment_id %}"
-                                       class="btn btn-warning">
-                                        <i class="fas fa-undo"></i> Request Refund
-                                    </a>
-                                {% else %}
-                                    <!-- Cancel Booking Button (for unpaid bookings) -->
-                                    <a href="{% url 'bookings:booking_cancel' booking.booking_id %}"
-                                       class="btn btn-danger"
-                                       onclick="return confirm('Are you sure you want to cancel this booking?')">
-                                        <i class="fas fa-times"></i> Cancel Booking
-                                    </a>
-                                {% endif %}
+                                <!-- Cancel Booking Button -->
+                                <a href="{% url 'bookings:booking_cancel' booking.booking_id %}"
+                                   class="btn btn-danger"
+                                   onclick="return confirm('Are you sure you want to cancel this booking?')">
+                                    <i class="fas fa-times"></i> Cancel Booking
+                                </a>
                             {% endif %}
                         </div>
                     </div>

@@ -99,13 +99,11 @@ class UserProfileUpdateForm(forms.ModelForm):
 
     class Meta:
         model = UserProfile
-        fields = ['bio', 'profile_picture', 'date_of_birth', 'address', 'city', 'country', 'postal_code']
+        fields = ['profile_picture', 'date_of_birth', 'address', 'city', 'country']
         widgets = {
-            'bio': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
             'profile_picture': forms.FileInput(attrs={'class': 'form-control'}),
             'date_of_birth': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'address': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'city': forms.TextInput(attrs={'class': 'form-control'}),
             'country': forms.TextInput(attrs={'class': 'form-control'}),
-            'postal_code': forms.TextInput(attrs={'class': 'form-control'}),
         }
