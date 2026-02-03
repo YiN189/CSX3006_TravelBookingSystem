@@ -1,7 +1,7 @@
 # bookings/forms.py
 
 from django import forms
-from .models import Booking, HotelBookingDetail, FlightBookingDetail, Passenger
+from .models import Booking, HotelBookingDetail, FlightBookingDetail
 from partners.models import Hotel, RoomType, Flight
 from datetime import date, timedelta
 
@@ -154,13 +154,59 @@ class FlightSearchForm(forms.Form):
 
 class FlightBookingForm(forms.ModelForm):
     """
-    Form for creating flight bookings
+    Form for creating flight bookings (includes passenger info)
     """
+    TITLE_CHOICES = [
+        ('Mr', 'Mr.'),
+        ('Mrs', 'Mrs.'),
+        ('Ms', 'Ms.'),
+        ('Dr', 'Dr.'),
+    ]
+
     number_of_passengers = forms.IntegerField(
         min_value=1,
         initial=1,
         widget=forms.NumberInput(attrs={
             'class': 'form-control'
+        })
+    )
+
+    # Passenger fields (now part of FlightBookingDetail)
+    passenger_title = forms.ChoiceField(
+        choices=TITLE_CHOICES,
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
+    passenger_first_name = forms.CharField(
+        max_length=100,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'First Name'
+        })
+    )
+
+    passenger_last_name = forms.CharField(
+        max_length=100,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Last Name'
+        })
+    )
+
+    passenger_dob = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={
+            'class': 'form-control',
+            'type': 'date'
+        })
+    )
+
+    passenger_passport = forms.CharField(
+        max_length=50,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Passport Number (optional)'
         })
     )
 
@@ -175,27 +221,5 @@ class FlightBookingForm(forms.ModelForm):
 
     class Meta:
         model = FlightBookingDetail
-        fields = ['number_of_passengers']
-
-
-class PassengerForm(forms.ModelForm):
-    """
-    Form for adding passenger information
-    """
-
-    class Meta:
-        model = Passenger
-        fields = ['title', 'first_name', 'last_name', 'date_of_birth', 'passport_number']
-        widgets = {
-            'title': forms.Select(attrs={'class': 'form-control'}),
-            'first_name': forms.TextInput(attrs={'class': 'form-control'}),
-            'last_name': forms.TextInput(attrs={'class': 'form-control'}),
-            'date_of_birth': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'passport_number': forms.TextInput(attrs={'class': 'form-control'}),
-        }
-
-
-# Formset for multiple passengers
-from django.forms import formset_factory
-
-PassengerFormSet = formset_factory(PassengerForm, extra=1, max_num=10)
+        fields = ['number_of_passengers', 'passenger_title', 'passenger_first_name',
+                  'passenger_last_name', 'passenger_dob', 'passenger_passport']

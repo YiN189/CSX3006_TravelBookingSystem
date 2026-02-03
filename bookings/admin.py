@@ -1,70 +1,9 @@
 # bookings/admin.py
-'''
-from django.contrib import admin
-from .models import Booking, HotelBookingDetail, FlightBookingDetail, Passenger
-
-
-class HotelBookingDetailInline(admin.StackedInline):
-    model = HotelBookingDetail
-    extra = 0
-
-
-class FlightBookingDetailInline(admin.StackedInline):
-    model = FlightBookingDetail
-    extra = 0
-
-
-@admin.register(Booking)
-class BookingAdmin(admin.ModelAdmin):
-    list_display = ['booking_id', 'user', 'booking_type', 'status', 'total_amount', 'created_at']
-    list_filter = ['booking_type', 'status', 'created_at']
-    search_fields = ['booking_id', 'user__username', 'user__email']
-    readonly_fields = ['booking_id', 'created_at', 'updated_at']
-    inlines = [HotelBookingDetailInline, FlightBookingDetailInline]
-
-    fieldsets = (
-        ('Basic Information', {
-            'fields': ('booking_id', 'user', 'booking_type', 'status')
-        }),
-        ('Financial', {
-            'fields': ('total_amount',)
-        }),
-        ('Additional', {
-            'fields': ('notes',)
-        }),
-        ('Timestamps', {
-            'fields': ('created_at', 'updated_at'),
-            'classes': ('collapse',)
-        }),
-    )
-
-
-@admin.register(HotelBookingDetail)
-class HotelBookingDetailAdmin(admin.ModelAdmin):
-    list_display = ['booking', 'hotel', 'room_type', 'check_in_date', 'check_out_date', 'number_of_rooms']
-    list_filter = ['check_in_date', 'hotel__city']
-    search_fields = ['booking__booking_id', 'hotel__name', 'room_type__name']
-
-
-@admin.register(FlightBookingDetail)
-class FlightBookingDetailAdmin(admin.ModelAdmin):
-    list_display = ['booking', 'flight', 'number_of_passengers', 'price_per_seat']
-    list_filter = ['flight__departure_time']
-    search_fields = ['booking__booking_id', 'flight__flight_number']
-
-
-@admin.register(Passenger)
-class PassengerAdmin(admin.ModelAdmin):
-    list_display = ['title', 'first_name', 'last_name', 'date_of_birth', 'flight_booking']
-    list_filter = ['title']
-    search_fields = ['first_name', 'last_name', 'passport_number']
-'''
-# bookings/admin.py
 
 from django.contrib import admin
 from django.utils.html import format_html
 from django.db.models import Sum, Count
-from .models import Booking, HotelBookingDetail, FlightBookingDetail, Passenger
+from .models import Booking, HotelBookingDetail, FlightBookingDetail
 
 
 class HotelBookingDetailInline(admin.StackedInline):
@@ -78,14 +17,9 @@ class HotelBookingDetailInline(admin.StackedInline):
 class FlightBookingDetailInline(admin.StackedInline):
     model = FlightBookingDetail
     extra = 0
-    readonly_fields = ['flight', 'number_of_passengers', 'price_per_seat']
-    can_delete = False
-
-
-class PassengerInline(admin.TabularInline):
-    model = Passenger
-    extra = 0
-    readonly_fields = ['title', 'first_name', 'last_name', 'date_of_birth', 'passport_number']
+    readonly_fields = ['flight', 'number_of_passengers', 'price_per_seat',
+                       'passenger_title', 'passenger_first_name', 'passenger_last_name',
+                       'passenger_dob', 'passenger_passport']
     can_delete = False
 
 
@@ -225,11 +159,20 @@ class HotelBookingDetailAdmin(admin.ModelAdmin):
 
 @admin.register(FlightBookingDetail)
 class FlightBookingDetailAdmin(admin.ModelAdmin):
-    list_display = ['booking_link', 'flight_link', 'passengers_count', 'price_per_seat', 'total_cost']
+    list_display = ['booking_link', 'flight_link', 'passengers_count', 'passenger_name', 'price_per_seat', 'total_cost']
     list_filter = ['flight__departure_time', 'flight__origin', 'flight__destination']
-    search_fields = ['booking__booking_id', 'flight__flight_number']
+    search_fields = ['booking__booking_id', 'flight__flight_number', 'passenger_first_name', 'passenger_last_name']
     readonly_fields = ['booking', 'flight']
-    inlines = [PassengerInline]
+
+    fieldsets = (
+        ('Booking Info', {
+            'fields': ('booking', 'flight', 'number_of_passengers', 'price_per_seat')
+        }),
+        ('Passenger Info', {
+            'fields': ('passenger_title', 'passenger_first_name', 'passenger_last_name',
+                       'passenger_dob', 'passenger_passport')
+        }),
+    )
 
     def booking_link(self, obj):
         return format_html(
@@ -252,29 +195,14 @@ class FlightBookingDetailAdmin(admin.ModelAdmin):
 
     passengers_count.short_description = 'Passengers'
 
+    def passenger_name(self, obj):
+        if obj.passenger_first_name:
+            return f'{obj.passenger_title} {obj.passenger_first_name} {obj.passenger_last_name}'
+        return '-'
+
+    passenger_name.short_description = 'Passenger Name'
+
     def total_cost(self, obj):
         return f'${obj.calculate_total():.2f}'
 
     total_cost.short_description = 'Total'
-
-
-@admin.register(Passenger)
-class PassengerAdmin(admin.ModelAdmin):
-    list_display = ['full_name', 'date_of_birth', 'passport_number', 'flight_booking_link']
-    list_filter = ['title', 'flight_booking__flight__origin', 'flight_booking__flight__destination']
-    search_fields = ['first_name', 'last_name', 'passport_number']
-    readonly_fields = ['flight_booking']
-
-    def full_name(self, obj):
-        return f'{obj.title} {obj.first_name} {obj.last_name}'
-
-    full_name.short_description = 'Name'
-
-    def flight_booking_link(self, obj):
-        return format_html(
-            '<a href="/admin/bookings/flightbookingdetail/{}/change/">{}</a>',
-            obj.flight_booking.id, obj.flight_booking.flight.flight_number
-        )
-
-    flight_booking_link.short_description = 'Flight Booking'
-

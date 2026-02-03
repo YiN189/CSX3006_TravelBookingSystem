@@ -1,142 +1,201 @@
-# Updated ER Diagram (Without Separate Passenger Entity)
+# Travel Booking System - ER Entities
 
-## Changes Made
-- Removed **PASSENGER** entity
-- Added passenger fields directly to **FLIGHT_BOOKING_DETAIL**
-
----
-
-## ER Diagram (Text Version)
-
+## 1. USER (Strong Entity)
 ```
-┌─────────────────┐          ┌─────────────────┐
-│      USER       │          │   USER_PROFILE  │
-├─────────────────┤    1:1   ├─────────────────┤
-│ (user_id) PK    │──────────│ (profile_id) PK │
-│ username        │   has    │ user_id (FK)    │
-│ email           │          │ profile_picture │
-│ phone           │          │ date_of_birth   │
-│ role            │          │ address         │
-│ created_at      │          │ city, country   │
-└────────┬────────┘          └─────────────────┘
-         │
-    becomes (1:0..1)
-         │
-         ▼
-┌─────────────────┐
-│     PARTNER     │
-├─────────────────┤
-│ (partner_id) PK │
-│ user_id (FK)    │
-│ name            │
-│ partner_type    │
-│ contact_email   │
-│ is_verified     │
-└────────┬────────┘
-         │
-    manages (1:N)
-         │
-    ┌────┴────┐
-    ▼         ▼
-┌─────────┐  ┌─────────┐
-│  HOTEL  │  │ FLIGHT  │
-├─────────┤  ├─────────┤
-│(hotel_id)│  │(flight_id)│
-│partner_id│  │partner_id│
-│  name   │  │flight_number│
-│  city   │  │  origin  │
-│star_rating│ │destination│
-│ is_active│  │  price   │
-└────┬────┘  │seats_avail│
-     │       └─────┬─────┘
-  has (1:N)        │
-     │             │
-     ▼             │
-┌─────────────┐    │
-│  ROOM_TYPE  │    │
-├─────────────┤    │
-│(roomtype_id)│    │
-│ hotel_id(FK)│    │
-│    name     │    │
-│price_per_night│  │
-│max_occupancy│    │
-│rooms_available│  │
-└─────────────┘    │
-                   │
-                   ▼
-┌────────────────────────────────────────────────────────────────────┐
-│                              BOOKING                               │
-├────────────────────────────────────────────────────────────────────┤
-│ (booking_id) PK | user_id (FK) | booking_type | status | total_amt│
-└───────────┬─────────────────────────────────────────────┬──────────┘
-            │                                             │
-     has (1:0..1)                                  has (1:0..1)
-            │                                             │
-            ▼                                             ▼
-┌───────────────────────┐         ┌──────────────────────────────────┐
-│ HOTEL_BOOKING_DETAIL  │         │     FLIGHT_BOOKING_DETAIL        │
-├───────────────────────┤         ├──────────────────────────────────┤
-│ (id) PK               │         │ (id) PK                          │
-│ booking_id (FK)       │         │ booking_id (FK)                  │
-│ hotel_id (FK)         │         │ flight_id (FK)                   │
-│ room_type_id (FK)     │         │ number_of_passengers             │
-│ check_in_date         │         │ price_per_seat                   │
-│ check_out_date        │         │ ─────────────────────────────    │
-│ number_of_rooms       │         │ PASSENGER INFO:                  │
-│ number_of_guests      │         │ passenger_title                  │
-│ price_per_night       │         │ passenger_first_name             │
-│ number_of_nights      │         │ passenger_last_name              │
-└───────────────────────┘         │ passenger_dob                    │
-                                  │ passenger_passport               │
-                                  └──────────────────────────────────┘
-
-BOOKING ──(paid_via 1:1)──► PAYMENT ──(generates 1:1)──► PAYMENT_RECEIPT
-
-┌─────────────────┐          ┌─────────────────┐
-│     PAYMENT     │   1:1    │ PAYMENT_RECEIPT │
-├─────────────────┤──────────├─────────────────┤
-│ (payment_id) PK │ generates│ (receipt_id) PK │
-│ booking_id (FK) │          │ payment_id (FK) │
-│ user_id (FK)    │          │ generated_at    │
-│ amount          │          │ downloaded_count│
-│ payment_method  │          └─────────────────┘
-│ status          │
-│ transaction_id  │
-│ payment_date    │
-└─────────────────┘
+USER
+├── id (PK)
+├── username
+├── email
+├── password
+├── phone
+├── role
+├── created_at
+└── updated_at
 ```
 
----
+## 2. USER_PROFILE (Weak Entity)
+```
+USER_PROFILE
+├── id (PK)
+├── user_id (FK) → USER
+├── profile_picture
+├── date_of_birth
+├── address
+├── city
+└── country
+```
 
-## Summary of Entities (11 Total - No Passenger)
+## 3. PARTNER (Weak Entity)
+```
+PARTNER
+├── id (PK)
+├── user_id (FK) → USER
+├── name
+├── partner_type
+├── description
+├── logo
+├── website
+├── contact_email
+├── contact_phone
+├── is_verified
+├── created_at
+└── updated_at
+```
 
-| Entity | Primary Key | Foreign Keys |
-|--------|-------------|--------------|
-| USER | user_id | - |
-| USER_PROFILE | profile_id | user_id |
-| PARTNER | partner_id | user_id |
-| HOTEL | hotel_id | partner_id |
-| ROOM_TYPE | roomtype_id | hotel_id |
-| FLIGHT | flight_id | partner_id |
-| BOOKING | booking_id | user_id |
-| HOTEL_BOOKING_DETAIL | id | booking_id, hotel_id, room_type_id |
-| FLIGHT_BOOKING_DETAIL | id | booking_id, flight_id |
-| PAYMENT | payment_id | booking_id, user_id |
-| PAYMENT_RECEIPT | receipt_id | payment_id |
+## 4. HOTEL (Strong Entity)
+```
+HOTEL
+├── id (PK)
+├── partner_id (FK) → PARTNER
+├── name
+├── city
+├── address
+├── description
+├── star_rating
+├── main_image
+├── amenities
+├── check_in_time
+├── check_out_time
+├── email
+├── phone
+├── is_active
+├── created_at
+└── updated_at
+```
+
+## 5. ROOM_TYPE (Strong Entity)
+```
+ROOM_TYPE
+├── id (PK)
+├── hotel_id (FK) → HOTEL
+├── name
+├── description
+├── price_per_night
+├── max_occupancy
+├── rooms_available
+├── room_size
+├── bed_type
+├── amenities
+├── image
+├── is_active
+├── created_at
+└── updated_at
+```
+
+## 6. FLIGHT (Strong Entity)
+```
+FLIGHT
+├── id (PK)
+├── partner_id (FK) → PARTNER
+├── flight_number
+├── origin
+├── destination
+├── departure_time
+├── arrival_time
+├── price
+├── seats_available
+├── total_seats
+├── aircraft_type
+├── airline_logo
+├── class_type
+├── is_active
+├── created_at
+└── updated_at
+```
+
+## 7. BOOKING (Strong Entity)
+```
+BOOKING
+├── id (PK)
+├── booking_id (UUID)
+├── user_id (FK) → USER
+├── booking_type
+├── status
+├── total_amount
+├── notes
+├── created_at
+└── updated_at
+```
+
+## 8. HOTEL_BOOKING_DETAIL (Weak Entity)
+```
+HOTEL_BOOKING_DETAIL
+├── id (PK)
+├── booking_id (FK) → BOOKING
+├── hotel_id (FK) → HOTEL
+├── room_type_id (FK) → ROOM_TYPE
+├── check_in_date
+├── check_out_date
+├── number_of_rooms
+├── number_of_guests
+├── price_per_night
+└── number_of_nights
+```
+
+## 9. FLIGHT_BOOKING_DETAIL (Weak Entity)
+```
+FLIGHT_BOOKING_DETAIL
+├── id (PK)
+├── booking_id (FK) → BOOKING
+├── flight_id (FK) → FLIGHT
+├── number_of_passengers
+├── price_per_seat
+├── passenger_title
+├── passenger_first_name
+├── passenger_last_name
+├── passenger_dob
+└── passenger_passport
+```
+
+## 10. PAYMENT (Weak Entity)
+```
+PAYMENT
+├── id (PK)
+├── payment_id (UUID)
+├── booking_id (FK) → BOOKING
+├── user_id (FK) → USER
+├── amount
+├── payment_method
+├── status
+├── transaction_id
+├── card_type
+├── card_last_four
+├── card_holder_name
+├── bank_name
+├── account_number
+├── paypal_email
+├── payment_date
+├── notes
+├── failure_reason
+├── created_at
+└── updated_at
+```
+
+## 11. PAYMENT_RECEIPT (Weak Entity)
+```
+PAYMENT_RECEIPT
+├── id (PK)
+├── receipt_id (UUID)
+├── payment_id (FK) → PAYMENT
+├── generated_at
+└── downloaded_count
+```
 
 ---
 
 ## Relationships
 
-| Relationship | Cardinality | Description |
-|--------------|-------------|-------------|
-| USER - USER_PROFILE | 1:1 | Each user has one profile |
-| USER - PARTNER | 1:0..1 | User can become a partner |
-| USER - BOOKING | 1:N | User makes many bookings |
-| PARTNER - HOTEL | 1:N | Partner manages many hotels |
-| PARTNER - FLIGHT | 1:N | Partner provides many flights |
-| HOTEL - ROOM_TYPE | 1:N | Hotel has many room types |
-| BOOKING - HOTEL_BOOKING_DETAIL | 1:0..1 | Hotel booking details |
-| BOOKING - FLIGHT_BOOKING_DETAIL | 1:0..1 | Flight booking details (includes passenger) |
-| BOOKING - PAYMENT | 1:1 | Booking is paid via payment |
-| PAYMENT - PAYMENT_RECEIPT | 1:1 | Payment generates receipt |
+```
+USER ──1:1── USER_PROFILE
+USER ──1:0..1── PARTNER
+USER ──1:N── BOOKING
+PARTNER ──1:N── HOTEL
+PARTNER ──1:N── FLIGHT
+HOTEL ──1:N── ROOM_TYPE
+BOOKING ──1:0..1── HOTEL_BOOKING_DETAIL
+BOOKING ──1:0..1── FLIGHT_BOOKING_DETAIL
+HOTEL_BOOKING_DETAIL ──N:1── ROOM_TYPE
+FLIGHT_BOOKING_DETAIL ──N:1── FLIGHT
+BOOKING ──1:1── PAYMENT
+PAYMENT ──1:1── PAYMENT_RECEIPT
+```

@@ -36,7 +36,6 @@ class DatabaseManager:
             return cursor.rowcount
 
 
-# Example Queries
 class BookingQueries:
     """
     All booking-related SQL queries
@@ -70,11 +69,18 @@ class BookingQueries:
         """
         query = """
             SELECT 
-                hbd.*,
+                hbd.id,
+                hbd.check_in_date,
+                hbd.check_out_date,
+                hbd.number_of_rooms,
+                hbd.number_of_guests,
+                hbd.price_per_night,
+                hbd.number_of_nights,
                 h.name as hotel_name,
                 h.city,
+                h.star_rating,
                 rt.name as room_type_name,
-                rt.price_per_night
+                rt.price_per_night as room_price
             FROM bookings_hotelbookingdetail hbd
             INNER JOIN partners_hotel h ON hbd.hotel_id = h.id
             INNER JOIN partners_roomtype rt ON hbd.room_type_id = rt.id
@@ -86,13 +92,18 @@ class BookingQueries:
     @staticmethod
     def get_flight_booking_details(booking_id):
         """
-        Get flight booking details with flight info
+        Get flight booking details with passenger info (stored in FlightBookingDetail)
         """
         query = """
             SELECT 
                 fbd.id,
                 fbd.number_of_passengers,
                 fbd.price_per_seat,
+                fbd.passenger_title,
+                fbd.passenger_first_name,
+                fbd.passenger_last_name,
+                fbd.passenger_dob,
+                fbd.passenger_passport,
                 f.flight_number,
                 f.origin,
                 f.destination,
@@ -108,59 +119,6 @@ class BookingQueries:
         """
         result = DatabaseManager.execute_query(query, [booking_id])
         return result[0] if result else None
-    
-    @staticmethod
-    def get_passengers_for_booking(flight_booking_id):
-        """
-        Get all passengers for a flight booking
-        """
-        query = """
-            SELECT 
-                p.id,
-                p.title,
-                p.first_name,
-                p.last_name,
-                p.date_of_birth,
-                p.passport_number,
-                CONCAT(p.title, ' ', p.first_name, ' ', p.last_name) as full_name
-            FROM bookings_passenger p
-            WHERE p.flight_booking_id = %s
-            ORDER BY p.id
-        """
-        return DatabaseManager.execute_query(query, [flight_booking_id])
-    
-    @staticmethod
-    def get_flight_booking_with_passengers(booking_id):
-        """
-        Get complete flight booking with all passengers (using JOIN)
-        """
-        query = """
-            SELECT 
-                b.booking_id,
-                b.status,
-                b.total_amount,
-                b.created_at,
-                f.flight_number,
-                f.origin,
-                f.destination,
-                f.departure_time,
-                f.arrival_time,
-                fbd.number_of_passengers,
-                fbd.price_per_seat,
-                p.title as passenger_title,
-                p.first_name as passenger_first_name,
-                p.last_name as passenger_last_name,
-                p.date_of_birth as passenger_dob,
-                p.passport_number as passenger_passport
-            FROM bookings_booking b
-            INNER JOIN bookings_flightbookingdetail fbd ON b.id = fbd.booking_id
-            INNER JOIN partners_flight f ON fbd.flight_id = f.id
-            LEFT JOIN bookings_passenger p ON fbd.id = p.flight_booking_id
-            WHERE b.booking_id = %s
-            ORDER BY p.id
-        """
-        return DatabaseManager.execute_query(query, [booking_id])
-
     
     @staticmethod
     def get_available_rooms(hotel_id, check_in, check_out):
@@ -185,24 +143,9 @@ class BookingQueries:
                 ) as actually_available
             FROM partners_roomtype rt
             WHERE rt.hotel_id = %s
-            AND rt.is_active = TRUE
-            HAVING actually_available > 0
+            AND rt.is_active = 1
         """
         return DatabaseManager.execute_query(query, [check_out, check_in, hotel_id])
-    
-    @staticmethod
-    def create_booking(user_id, booking_type, total_amount):
-        """
-        Create a new booking using raw SQL
-        """
-        query = """
-            INSERT INTO bookings_booking 
-            (booking_id, user_id, booking_type, status, total_amount, created_at, updated_at)
-            VALUES (uuid_generate_v4(), %s, %s, 'pending', %s, NOW(), NOW())
-            RETURNING id, booking_id
-        """
-        result = DatabaseManager.execute_query(query, [user_id, booking_type, total_amount])
-        return result[0] if result else None
 
 
 class HotelQueries:
@@ -213,7 +156,7 @@ class HotelQueries:
     @staticmethod
     def search_hotels(city=None, min_price=None, max_price=None):
         """
-        Search hotels with filters
+        Search hotels with filters (SQLite compatible)
         """
         query = """
             SELECT DISTINCT
@@ -226,12 +169,13 @@ class HotelQueries:
                 COUNT(rt.id) as room_types_count
             FROM partners_hotel h
             LEFT JOIN partners_roomtype rt ON h.id = rt.hotel_id
-            WHERE h.is_active = TRUE
+            WHERE h.is_active = 1
         """
         params = []
         
         if city:
-            query += " AND h.city ILIKE %s"
+            # SQLite: Use LIKE with LOWER() for case-insensitive search
+            query += " AND LOWER(h.city) LIKE LOWER(%s)"
             params.append(f'%{city}%')
         
         if min_price:
@@ -248,6 +192,29 @@ class HotelQueries:
         """
         
         return DatabaseManager.execute_query(query, params)
+    
+    @staticmethod
+    def get_hotel_with_rooms(hotel_id):
+        """
+        Get hotel with all room types
+        """
+        query = """
+            SELECT 
+                h.id as hotel_id,
+                h.name as hotel_name,
+                h.city,
+                h.star_rating,
+                rt.id as room_type_id,
+                rt.name as room_type_name,
+                rt.price_per_night,
+                rt.max_occupancy,
+                rt.rooms_available
+            FROM partners_hotel h
+            LEFT JOIN partners_roomtype rt ON h.id = rt.hotel_id
+            WHERE h.id = %s
+            AND rt.is_active = 1
+        """
+        return DatabaseManager.execute_query(query, [hotel_id])
     
     @staticmethod
     def get_hotel_statistics(hotel_id):
@@ -275,24 +242,24 @@ class HotelQueries:
 
 class ReportQueries:
     """
-    Reporting and analytics queries
+    Reporting and analytics queries (SQLite compatible)
     """
     
     @staticmethod
     def get_revenue_by_month():
         """
-        Get monthly revenue report
+        Get monthly revenue report (SQLite compatible)
         """
         query = """
             SELECT 
-                DATE_TRUNC('month', created_at) as month,
+                strftime('%Y-%m', created_at) as month,
                 booking_type,
                 COUNT(*) as booking_count,
                 SUM(total_amount) as total_revenue
             FROM bookings_booking
             WHERE status IN ('confirmed', 'completed')
-            AND created_at >= DATE_TRUNC('year', CURRENT_DATE)
-            GROUP BY DATE_TRUNC('month', created_at), booking_type
+            AND created_at >= date('now', 'start of year')
+            GROUP BY strftime('%Y-%m', created_at), booking_type
             ORDER BY month DESC
         """
         return DatabaseManager.execute_query(query)

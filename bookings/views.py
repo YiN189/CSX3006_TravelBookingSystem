@@ -7,14 +7,14 @@ from django.db.models import Q
 from django.db import transaction
 from datetime import date, datetime
 from accounts.decorators import customer_required
-from .models import Booking, HotelBookingDetail, FlightBookingDetail, Passenger
+from .models import Booking, HotelBookingDetail, FlightBookingDetail
 from .forms import (
     HotelSearchForm, HotelBookingForm,
-    FlightSearchForm, FlightBookingForm,
-    PassengerFormSet
+    FlightSearchForm, FlightBookingForm
 )
 from partners.models import Hotel, RoomType, Flight
 from utils.db_manager import BookingQueries, HotelQueries
+
 
 
 # Hotel Booking Views
@@ -203,28 +203,16 @@ def flight_detail(request, flight_id):
 @customer_required
 def flight_booking_create(request, flight_id):
     """
-    Create a flight booking
+    Create a flight booking (passenger info stored in FlightBookingDetail)
     """
     flight = get_object_or_404(Flight, id=flight_id, is_active=True)
 
     if request.method == 'POST':
         form = FlightBookingForm(request.POST)
-        passenger_formset = PassengerFormSet(request.POST, prefix='passengers')
 
-        if form.is_valid() and passenger_formset.is_valid():
+        if form.is_valid():
             number_of_passengers = form.cleaned_data['number_of_passengers']
             notes = request.POST.get('notes', '')
-
-            # Validate number of passenger forms matches number_of_passengers
-            valid_passengers = [f for f in passenger_formset if
-                                f.cleaned_data and not f.cleaned_data.get('DELETE', False)]
-            if len(valid_passengers) != number_of_passengers:
-                messages.error(request, f'Please provide information for exactly {number_of_passengers} passengers.')
-                return render(request, 'bookings/flights/booking_form.html', {
-                    'form': form,
-                    'passenger_formset': passenger_formset,
-                    'flight': flight,
-                })
 
             # Check seat availability
             if flight.seats_available < number_of_passengers:
@@ -246,31 +234,24 @@ def flight_booking_create(request, flight_id):
                         notes=notes
                     )
 
-                    # Create flight booking details
+                    # Create flight booking details with passenger info
                     flight_booking = FlightBookingDetail.objects.create(
                         booking=booking,
                         flight=flight,
                         number_of_passengers=number_of_passengers,
-                        price_per_seat=flight.price
+                        price_per_seat=flight.price,
+                        # Passenger info from form
+                        passenger_title=form.cleaned_data.get('passenger_title', 'Mr'),
+                        passenger_first_name=form.cleaned_data.get('passenger_first_name', ''),
+                        passenger_last_name=form.cleaned_data.get('passenger_last_name', ''),
+                        passenger_dob=form.cleaned_data.get('passenger_dob'),
+                        passenger_passport=form.cleaned_data.get('passenger_passport', '')
                     )
-
-                    # Create passenger records
-                    for passenger_form in valid_passengers:
-                        passenger_data = passenger_form.cleaned_data
-                        Passenger.objects.create(
-                            flight_booking=flight_booking,
-                            title=passenger_data['title'],
-                            first_name=passenger_data['first_name'],
-                            last_name=passenger_data['last_name'],
-                            date_of_birth=passenger_data['date_of_birth'],
-                            passport_number=passenger_data.get('passport_number', '')
-                        )
 
                     # Update seat availability
                     flight.seats_available -= number_of_passengers
                     flight.save()
 
-                    # NEW: Redirect to payment page instead of booking detail
                     messages.success(request,
                                      'Flight booking created successfully! Please complete payment to confirm your ticket.')
                     return redirect('payments:payment_page', booking_id=booking.booking_id)
@@ -282,11 +263,9 @@ def flight_booking_create(request, flight_id):
             messages.error(request, 'Please correct the errors below.')
     else:
         form = FlightBookingForm()
-        passenger_formset = PassengerFormSet(prefix='passengers')
 
     context = {
         'form': form,
-        'passenger_formset': passenger_formset,
         'flight': flight,
     }
 
@@ -314,8 +293,8 @@ def my_bookings(request):
         # Enrich each booking with details
         for booking in raw_bookings:
             if booking['booking_type'] == 'hotel':
-                # Get hotel details using raw SQL
-                booking['hotel_details'] = BookingQueries.get_hotel_booking_details(booking['id'])
+                # Get hotel details using raw SQL (use booking_id from raw SQL result)
+                booking['hotel_details'] = BookingQueries.get_hotel_booking_details(booking['booking_id'])
         
         # For template compatibility, also get ORM bookings for payment info
         bookings = Booking.objects.filter(user=request.user).select_related(
