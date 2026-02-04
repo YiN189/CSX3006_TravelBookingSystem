@@ -56,8 +56,16 @@ class UserAdmin(BaseUserAdmin):
     search_fields = ['username', 'email', 'first_name', 'last_name', 'phone']
     ordering = ['-created_at']
     readonly_fields = ['date_joined', 'last_login', 'created_at', 'updated_at']
+    
+    # Remove filter_horizontal since groups and user_permissions are removed
+    filter_horizontal = []
 
-    fieldsets = BaseUserAdmin.fieldsets + (
+    # Custom fieldsets without groups and user_permissions
+    fieldsets = (
+        (None, {'fields': ('username', 'password')}),
+        ('Personal info', {'fields': ('first_name', 'last_name', 'email')}),
+        ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser')}),
+        ('Important dates', {'fields': ('last_login', 'date_joined')}),
         ('Additional Info', {
             'fields': ('role', 'phone'),
         }),
@@ -67,7 +75,11 @@ class UserAdmin(BaseUserAdmin):
         }),
     )
 
-    add_fieldsets = BaseUserAdmin.add_fieldsets + (
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('username', 'password1', 'password2'),
+        }),
         ('Additional Info', {
             'fields': ('email', 'role', 'phone'),
         }),

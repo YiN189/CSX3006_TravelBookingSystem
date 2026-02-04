@@ -12,6 +12,10 @@ class User(AbstractUser):
     - admin: System admin with full access
     """
 
+    # Disable Django's default groups and permissions M2M tables
+    groups = None
+    user_permissions = None
+
     ROLE_CHOICES = [
         ('customer', 'Customer'),
         ('partner', 'Partner Admin'),
