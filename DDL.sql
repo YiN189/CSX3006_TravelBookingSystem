@@ -232,3 +232,4 @@ CREATE INDEX idx_flight_origin ON partners_flight(origin);
 CREATE INDEX idx_flight_destination ON partners_flight(destination);
 CREATE INDEX idx_flight_departure ON partners_flight(departure_time);
 
+

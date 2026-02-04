@@ -42,8 +42,12 @@ class UserProfileAdmin(admin.ModelAdmin):
 
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.contrib.auth.models import Group
 from django.db.models import Count
 from .models import User, UserProfile
+
+# Unregister the Group model from admin (hides the Auth section)
+admin.site.unregister(Group)
 
 
 @admin.register(User)
@@ -56,16 +60,8 @@ class UserAdmin(BaseUserAdmin):
     search_fields = ['username', 'email', 'first_name', 'last_name', 'phone']
     ordering = ['-created_at']
     readonly_fields = ['date_joined', 'last_login', 'created_at', 'updated_at']
-    
-    # Remove filter_horizontal since groups and user_permissions are removed
-    filter_horizontal = []
 
-    # Custom fieldsets without groups and user_permissions
-    fieldsets = (
-        (None, {'fields': ('username', 'password')}),
-        ('Personal info', {'fields': ('first_name', 'last_name', 'email')}),
-        ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser')}),
-        ('Important dates', {'fields': ('last_login', 'date_joined')}),
+    fieldsets = BaseUserAdmin.fieldsets + (
         ('Additional Info', {
             'fields': ('role', 'phone'),
         }),
@@ -75,11 +71,7 @@ class UserAdmin(BaseUserAdmin):
         }),
     )
 
-    add_fieldsets = (
-        (None, {
-            'classes': ('wide',),
-            'fields': ('username', 'password1', 'password2'),
-        }),
+    add_fieldsets = BaseUserAdmin.add_fieldsets + (
         ('Additional Info', {
             'fields': ('email', 'role', 'phone'),
         }),

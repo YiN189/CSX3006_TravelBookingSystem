@@ -36,51 +36,60 @@
 
                         <hr>
 
-                        <h5 class="mb-3">Passenger Details</h5>
+                        <h5 class="mb-3">Primary Passenger Details</h5>
 
-                        {{ passenger_formset.management_form }}
-
-                        <div id="passenger-forms">
-                            {% for passenger_form in passenger_formset %}
-                                <div class="card mb-3 passenger-form">
-                                    <div class="card-header bg-light">
-                                        <strong>Passenger {{ forloop.counter }}</strong>
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">
+                                <strong>Passenger Information</strong>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-2 mb-3">
+                                        <label class="form-label">Title *</label>
+                                        {{ form.passenger_title }}
+                                        {% if form.passenger_title.errors %}
+                                            <div class="text-danger">{{ form.passenger_title.errors }}</div>
+                                        {% endif %}
                                     </div>
-                                    <div class="card-body">
-                                        <div class="row">
-                                            <div class="col-md-2 mb-3">
-                                                <label class="form-label">Title *</label>
-                                                {{ passenger_form.title }}
-                                            </div>
-                                            <div class="col-md-5 mb-3">
-                                                <label class="form-label">First Name *</label>
-                                                {{ passenger_form.first_name }}
-                                            </div>
-                                            <div class="col-md-5 mb-3">
-                                                <label class="form-label">Last Name *</label>
-                                                {{ passenger_form.last_name }}
-                                            </div>
-                                        </div>
-                                        <div class="row">
-                                            <div class="col-md-6 mb-3">
-                                                <label class="form-label">Date of Birth *</label>
-                                                {{ passenger_form.date_of_birth }}
-                                            </div>
-                                            <div class="col-md-6 mb-3">
-                                                <label class="form-label">Passport Number</label>
-                                                {{ passenger_form.passport_number }}
-                                            </div>
-                                        </div>
+                                    <div class="col-md-5 mb-3">
+                                        <label class="form-label">First Name *</label>
+                                        {{ form.passenger_first_name }}
+                                        {% if form.passenger_first_name.errors %}
+                                            <div class="text-danger">{{ form.passenger_first_name.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-5 mb-3">
+                                        <label class="form-label">Last Name *</label>
+                                        {{ form.passenger_last_name }}
+                                        {% if form.passenger_last_name.errors %}
+                                            <div class="text-danger">{{ form.passenger_last_name.errors }}</div>
+                                        {% endif %}
                                     </div>
                                 </div>
-                            {% endfor %}
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Date of Birth</label>
+                                        {{ form.passenger_dob }}
+                                        {% if form.passenger_dob.errors %}
+                                            <div class="text-danger">{{ form.passenger_dob.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Passport Number</label>
+                                        {{ form.passenger_passport }}
+                                        {% if form.passenger_passport.errors %}
+                                            <div class="text-danger">{{ form.passenger_passport.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <hr>
 
                         <div class="mb-3">
                             <label class="form-label">Special Requests (Optional)</label>
-                            <textarea name="notes" class="form-control" rows="3" placeholder="Any special requests or notes"></textarea>
+                            {{ form.notes }}
                         </div>
 
                         <div class="d-grid gap-2">

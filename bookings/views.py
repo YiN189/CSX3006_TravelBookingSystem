@@ -6,6 +6,7 @@ from django.contrib import messages
 from django.db.models import Q
 from django.db import transaction
 from datetime import date, datetime
+from django.utils import timezone
 from accounts.decorators import customer_required
 from .models import Booking, HotelBookingDetail, FlightBookingDetail
 from .forms import (
@@ -164,7 +165,7 @@ def flight_search(request):
     Search for flights
     """
     form = FlightSearchForm(request.GET or None)
-    flights = Flight.objects.filter(is_active=True, departure_time__gte=datetime.now())
+    flights = Flight.objects.filter(is_active=True, departure_time__gte=timezone.now())
 
     if form.is_valid():
         origin = form.cleaned_data.get('origin')
