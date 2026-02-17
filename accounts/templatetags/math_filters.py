@@ -45,3 +45,15 @@ def percentage(value, total):
         return (float(value or 0) / total) * 100
     except (ValueError, TypeError):
         return 0
+
+
+@register.filter
+def times(value):
+    """
+    Generate a range for looping N times
+    Usage: {% for i in hotel.star_rating|times %}
+    """
+    try:
+        return range(int(value))
+    except (ValueError, TypeError):
+        return range(0)

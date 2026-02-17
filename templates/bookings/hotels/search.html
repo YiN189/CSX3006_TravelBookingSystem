@@ -1,5 +1,6 @@
 <!-- templates/bookings/hotels/search.html -->
 {% extends 'base.html' %}
+{% load math_filters %}
 
 {% block title %}Search Hotels{% endblock %}
 
@@ -55,8 +56,7 @@
                             <h5 class="card-title">{{ hotel.name }}</h5>
                             <p class="card-text">
                                 <i class="fas fa-map-marker-alt text-danger"></i> {{ hotel.city }}<br>
-                                <i class="fas fa-star text-warning"></i>
-                                {% for i in "12345"|slice:":"|slice:hotel.star_rating %}
+                                {% for i in hotel.star_rating|times %}
                                     <i class="fas fa-star text-warning"></i>
                                 {% endfor %}
                                 {{ hotel.star_rating }} Star<br>

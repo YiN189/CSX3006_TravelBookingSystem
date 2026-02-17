@@ -1,14 +1,14 @@
 -- =====================================================
 -- Travel Booking System - SQL DDL
 -- Based on ER Diagram (11 Tables)
--- Database: SQLite
+-- Database: PostgreSQL
 -- =====================================================
 
 -- =====================================================
 -- 1. USER (Strong Entity)
 -- =====================================================
 CREATE TABLE accounts_user (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id BIGSERIAL PRIMARY KEY,
     username VARCHAR(150) NOT NULL UNIQUE,
     password VARCHAR(128) NOT NULL,
     first_name VARCHAR(150) NOT NULL DEFAULT '',
@@ -16,21 +16,21 @@ CREATE TABLE accounts_user (
     email VARCHAR(254) NOT NULL UNIQUE,
     phone VARCHAR(15),
     role VARCHAR(20) NOT NULL DEFAULT 'customer' CHECK (role IN ('customer', 'partner', 'admin')),
-    is_staff BOOLEAN NOT NULL DEFAULT 0,
-    is_active BOOLEAN NOT NULL DEFAULT 1,
-    is_superuser BOOLEAN NOT NULL DEFAULT 0,
-    date_joined DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    last_login DATETIME,
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    is_staff BOOLEAN NOT NULL DEFAULT FALSE,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    is_superuser BOOLEAN NOT NULL DEFAULT FALSE,
+    date_joined TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_login TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- =====================================================
 -- 2. USER_PROFILE (Weak Entity - depends on USER)
 -- =====================================================
 CREATE TABLE accounts_userprofile (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL UNIQUE,
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL UNIQUE,
     profile_picture VARCHAR(100),
     date_of_birth DATE,
     address TEXT,
@@ -40,11 +40,11 @@ CREATE TABLE accounts_userprofile (
 );
 
 -- =====================================================
--- 3. PARTNER (Weak Entity - depends on USER)
+-- 3. PARTNER 
 -- =====================================================
 CREATE TABLE partners_partner (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL UNIQUE,
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL UNIQUE,
     name VARCHAR(255) NOT NULL,
     partner_type VARCHAR(20) NOT NULL DEFAULT 'both' CHECK (partner_type IN ('hotel', 'flight', 'both')),
     description TEXT,
@@ -52,9 +52,9 @@ CREATE TABLE partners_partner (
     website VARCHAR(200),
     contact_email VARCHAR(254) NOT NULL,
     contact_phone VARCHAR(15),
-    is_verified BOOLEAN NOT NULL DEFAULT 0,
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    is_verified BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES accounts_user(id) ON DELETE CASCADE
 );
 
@@ -62,8 +62,8 @@ CREATE TABLE partners_partner (
 -- 4. HOTEL (Strong Entity)
 -- =====================================================
 CREATE TABLE partners_hotel (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    partner_id INTEGER NOT NULL,
+    id BIGSERIAL PRIMARY KEY,
+    partner_id BIGINT NOT NULL,
     name VARCHAR(255) NOT NULL,
     city VARCHAR(100) NOT NULL,
     address TEXT NOT NULL,
@@ -75,9 +75,9 @@ CREATE TABLE partners_hotel (
     check_out_time TIME NOT NULL DEFAULT '12:00:00',
     email VARCHAR(254),
     phone VARCHAR(15),
-    is_active BOOLEAN NOT NULL DEFAULT 1,
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (partner_id) REFERENCES partners_partner(id) ON DELETE CASCADE
 );
 
@@ -85,8 +85,8 @@ CREATE TABLE partners_hotel (
 -- 5. ROOM_TYPE (Strong Entity)
 -- =====================================================
 CREATE TABLE partners_roomtype (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    hotel_id INTEGER NOT NULL,
+    id BIGSERIAL PRIMARY KEY,
+    hotel_id BIGINT NOT NULL,
     name VARCHAR(100) NOT NULL,
     description TEXT,
     price_per_night DECIMAL(10, 2) NOT NULL CHECK (price_per_night >= 0),
@@ -96,9 +96,9 @@ CREATE TABLE partners_roomtype (
     bed_type VARCHAR(100),
     amenities TEXT,
     image VARCHAR(100),
-    is_active BOOLEAN NOT NULL DEFAULT 1,
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (hotel_id) REFERENCES partners_hotel(id) ON DELETE CASCADE
 );
 
@@ -106,22 +106,22 @@ CREATE TABLE partners_roomtype (
 -- 6. FLIGHT (Strong Entity)
 -- =====================================================
 CREATE TABLE partners_flight (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    partner_id INTEGER NOT NULL,
+    id BIGSERIAL PRIMARY KEY,
+    partner_id BIGINT NOT NULL,
     flight_number VARCHAR(20) NOT NULL UNIQUE,
     origin VARCHAR(100) NOT NULL,
     destination VARCHAR(100) NOT NULL,
-    departure_time DATETIME NOT NULL,
-    arrival_time DATETIME NOT NULL,
+    departure_time TIMESTAMP NOT NULL,
+    arrival_time TIMESTAMP NOT NULL,
     price DECIMAL(10, 2) NOT NULL CHECK (price >= 0),
     seats_available INTEGER NOT NULL DEFAULT 150 CHECK (seats_available >= 0),
     total_seats INTEGER NOT NULL DEFAULT 150 CHECK (total_seats >= 1),
     aircraft_type VARCHAR(100),
     airline_logo VARCHAR(100),
     class_type VARCHAR(50) NOT NULL DEFAULT 'Economy',
-    is_active BOOLEAN NOT NULL DEFAULT 1,
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (partner_id) REFERENCES partners_partner(id) ON DELETE CASCADE
 );
 
@@ -129,15 +129,15 @@ CREATE TABLE partners_flight (
 -- 7. BOOKING (Strong Entity)
 -- =====================================================
 CREATE TABLE bookings_booking (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id BIGSERIAL PRIMARY KEY,
     booking_id VARCHAR(36) NOT NULL UNIQUE,  -- UUID stored as string
-    user_id INTEGER NOT NULL,
+    user_id BIGINT NOT NULL,
     booking_type VARCHAR(20) NOT NULL CHECK (booking_type IN ('hotel', 'flight')),
     status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'confirmed', 'cancelled', 'completed')),
     total_amount DECIMAL(10, 2) NOT NULL CHECK (total_amount >= 0),
     notes TEXT,
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES accounts_user(id) ON DELETE CASCADE
 );
 
@@ -145,10 +145,10 @@ CREATE TABLE bookings_booking (
 -- 8. HOTEL_BOOKING_DETAIL (Weak Entity - depends on BOOKING)
 -- =====================================================
 CREATE TABLE bookings_hotelbookingdetail (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    booking_id INTEGER NOT NULL UNIQUE,
-    hotel_id INTEGER NOT NULL,
-    room_type_id INTEGER NOT NULL,
+    id BIGSERIAL PRIMARY KEY,
+    booking_id BIGINT NOT NULL UNIQUE,
+    hotel_id BIGINT NOT NULL,
+    room_type_id BIGINT NOT NULL,
     check_in_date DATE NOT NULL,
     check_out_date DATE NOT NULL,
     number_of_rooms INTEGER NOT NULL DEFAULT 1 CHECK (number_of_rooms >= 1),
@@ -164,9 +164,9 @@ CREATE TABLE bookings_hotelbookingdetail (
 -- 9. FLIGHT_BOOKING_DETAIL (Weak Entity - depends on BOOKING)
 -- =====================================================
 CREATE TABLE bookings_flightbookingdetail (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    booking_id INTEGER NOT NULL UNIQUE,
-    flight_id INTEGER NOT NULL,
+    id BIGSERIAL PRIMARY KEY,
+    booking_id BIGINT NOT NULL UNIQUE,
+    flight_id BIGINT NOT NULL,
     number_of_passengers INTEGER NOT NULL DEFAULT 1 CHECK (number_of_passengers >= 1),
     price_per_seat DECIMAL(10, 2) NOT NULL,
     passenger_title VARCHAR(10) NOT NULL DEFAULT 'Mr' CHECK (passenger_title IN ('Mr', 'Mrs', 'Ms', 'Dr')),
@@ -182,10 +182,10 @@ CREATE TABLE bookings_flightbookingdetail (
 -- 10. PAYMENT (Weak Entity - depends on BOOKING)
 -- =====================================================
 CREATE TABLE payments_payment (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id BIGSERIAL PRIMARY KEY,
     payment_id VARCHAR(36) NOT NULL UNIQUE,  -- UUID stored as string
-    booking_id INTEGER NOT NULL UNIQUE,
-    user_id INTEGER NOT NULL,
+    booking_id BIGINT NOT NULL UNIQUE,
+    user_id BIGINT NOT NULL,
     amount DECIMAL(10, 2) NOT NULL,
     payment_method VARCHAR(20) NOT NULL CHECK (payment_method IN ('credit_card', 'debit_card', 'bank_transfer', 'paypal', 'cash')),
     status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'completed', 'failed', 'refunded')),
@@ -196,11 +196,11 @@ CREATE TABLE payments_payment (
     bank_name VARCHAR(100),
     account_number VARCHAR(50),
     paypal_email VARCHAR(254),
-    payment_date DATETIME,
+    payment_date TIMESTAMP,
     notes TEXT,
     failure_reason TEXT,
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (booking_id) REFERENCES bookings_booking(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES accounts_user(id) ON DELETE CASCADE
 );
@@ -209,10 +209,10 @@ CREATE TABLE payments_payment (
 -- 11. PAYMENT_RECEIPT (Weak Entity - depends on PAYMENT)
 -- =====================================================
 CREATE TABLE payments_paymentreceipt (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id BIGSERIAL PRIMARY KEY,
     receipt_id VARCHAR(36) NOT NULL UNIQUE,  -- UUID stored as string
-    payment_id INTEGER NOT NULL UNIQUE,
-    generated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    payment_id BIGINT NOT NULL UNIQUE,
+    generated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     downloaded_count INTEGER NOT NULL DEFAULT 0,
     FOREIGN KEY (payment_id) REFERENCES payments_payment(id) ON DELETE CASCADE
 );
@@ -231,5 +231,3 @@ CREATE INDEX idx_hotel_city ON partners_hotel(city);
 CREATE INDEX idx_flight_origin ON partners_flight(origin);
 CREATE INDEX idx_flight_destination ON partners_flight(destination);
 CREATE INDEX idx_flight_departure ON partners_flight(departure_time);
-
-

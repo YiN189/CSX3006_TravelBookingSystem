@@ -59,28 +59,37 @@ WSGI_APPLICATION = 'csx3006TravelBookingSystem.wsgi.application'
 
 # Database Configuration
 # =======================
-# For PRESENTATION 2 (without database access): Use SQLite (current)
-# For PRESENTATION 3 (with database access): Uncomment PostgreSQL, comment SQLite
+# For PRESENTATION 2 (without database access): Use SQLite
+# For PRESENTATION 3 (with database access): Use PostgreSQL (current)
 
-# CURRENT: SQLite (portable, no setup needed)
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-
-# ALTERNATIVE: PostgreSQL (uncomment for Presentation 3)
+# PREVIOUS: SQLite (portable, no setup needed)
 # DATABASES = {
 #     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'travel_booking_db',
-#         'USER': 'postgres',
-#         'PASSWORD': 'me@npkk.dev',
-#         'HOST': 'localhost',
-#         'PORT': '5432',
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
 #     }
 # }
+
+
+
+
+
+
+
+
+
+
+# CURRENT: PostgreSQL
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'travel_booking_db',
+        'USER': 'postgres',
+        'PASSWORD': 'me@npkk.dev',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    }
+}
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
